@@ -1,7 +1,7 @@
 # vrlivedemo
 
-> A Vue.js project
-
+> 直播5.0  手机端（探视系统）
+ 
 ## Build Setup
 
 ``` bash
