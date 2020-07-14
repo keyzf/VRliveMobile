@@ -1,0 +1,188 @@
+.R_Sidebar{
+    position: absolute;
+    width: 40px;
+    height: 140px;
+    background: rgba(0,0,0,1);
+    border-radius: 12px 0px 0px 12px;
+    opacity: 0.4;
+    top: 36%;
+    right: 0;
+}
+.R_Sidebar ul{
+    height: 100%;
+    width: 100%;
+}
+.R_Sidebar ul li{
+    height: 47px;
+    line-height: 47px;
+}
+.R_Sidebar ul li img{
+width: 55%;
+}
+.B_Sidebar{
+    width: 100%;
+    position: fixed;
+    z-index: 999999;
+    bottom: 78px;
+}
+.tool_active{
+    background: rgba(0, 0, 0, 0.32);
+    width: 300px;
+    height: 100%;
+    margin: auto;
+    border-radius: 7px;
+    
+    cursor: pointer;
+}
+.tool_active p{
+    height: 46px;
+    color: #ffffff;
+    line-height: 46px;
+}
+.tool_active p span{
+    float: right;
+    width: 50px;
+}
+.tool_select{
+    /* height: 200px; */
+    width: 300px;
+    margin: auto;
+    overflow-x: hidden;
+    position: relative;
+    bottom: 4px;
+    max-height: 200px;
+}
+.tool_select ul{
+    width: 100%;
+}
+.tool_select ul li{
+    width: 250px;
+    background: rgba(0, 0, 0, 0.32);
+    height: 46px;
+    color: #ffffff;
+    line-height: 46px;
+    margin-bottom: 4px;
+    
+    border-radius: 7px;
+}
+.SharaCont{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+}
+.SharaCont img{
+    width: 100%;
+}
+.pwdCont{
+    position: fixed;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.3);
+    /* padding-top: 130px; */
+    color: #ffffff;
+    z-index: 999999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.pwdCont .pwdtitle{
+    height:28px;
+    font-size:20px;
+    font-family:PingFangSC-Medium,PingFang SC;
+    font-weight:500;
+    color:rgba(255,255,255,1);
+    line-height:28px;
+    margin-bottom: 15px;
+}
+.pwdCont .pwdtinfo{
+    height:20px;
+    font-size:14px;
+    font-family:PingFangSC-Medium,PingFang SC;
+    font-weight:500;
+    color:rgba(255,255,255,1);
+    line-height:20px;
+    margin-bottom: 15px;
+}
+ #app .van-password-input__security li{
+    width: 60px;
+    height: 60px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 10px;
+    border: 2px solid rgba(255,255,255,1);
+    flex: 0 0 60px;
+}
+#app .van-password-input__security{
+    justify-content: center;
+}
+#app .van-password-input__security i{
+    background: #ffffff !important;
+}
+.van-key{
+    color: #000000;
+}
+.van-key--blue, .van-key--blue.van-key--active{
+    color: #ffffff;
+}
+.pwdCont .P_error{
+    color:rgba(253,172,58,1);
+}
+.pwdCont .Close{
+    position: absolute;
+    bottom: 344px;
+    right: 0;
+}
+.activeLive{
+    color: #FFC107;
+}
+.videobox{
+    width: 100%;
+    height: 100%;
+}
+.PlayVan{
+    position: absolute;
+    top: 50%;
+    z-index: 999999;
+    left: 44%;
+    font-size: 64px;
+    color: #ffffff;
+    cursor: pointer;
+}
+.myVideo-dimensions{
+    width: 800px;
+    height: 100%;
+}
+.loadingBox{
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999999999;
+}
+.vjs-big-play-centered .vjs-big-play-button{
+   display: none;
+}
+.videoCont{
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    margin: auto;
+    /* background: #dd; */
+    display: flex;
+    cursor: pointer;
+    background-color: #292727;
+    justify-content: center;
+    align-items: center;
+}
+.videoCont img{
+    width: 11%;
+}

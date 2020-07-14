@@ -1,0 +1,11 @@
+{
+  "ip": "183.220.1.80",
+  "port": "18081",
+  "vrtype": "4",
+  "login": "true",
+  "share": "true",
+  "Pcurl": "http://183.220.1.80:18081/webConsumer#/",
+  "H5url": "http://183.220.1.80:18081/h5#/",
+  "insta360ProCtl": "LvmsCameraCtl",
+  "vrName": "中国移动VR直播控制平台"
+}
