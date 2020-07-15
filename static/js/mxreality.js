@@ -4,6 +4,7 @@
  *免费软件，请保留版权注释
  */
 
+// fix:iphone11和部分华为设备播放黑屏问题
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports)
     : typeof define === 'function' && define.amd ? define(['exports'], factory)
@@ -22,6 +23,15 @@
       'width': 2,
       'height': 2,
       'depth': 2
+    }
+    this.liveSettings = {
+      'forceUseHls': false,
+      'forceUseVndAppleMpegUrl': false,
+      'forceUseXmpegUrl': false,
+      'usePlugin': false,
+      'loadPlugin': function (video) {
+        console.log('load video', video)
+      }
     }
     this.hlsConfig = {
       autoStartLoad: true
@@ -604,7 +614,7 @@
         if (!Box) {
           var Box = new THREE.Mesh(new THREE.CubeGeometry(that.vrbox.width, that.vrbox.height, that.vrbox.depth), new THREE.MultiMaterial(materials))
           Box.applyMatrix(new THREE.Matrix4().makeScale(1, 1, -1))
-          Box.visible = false
+          Box.visible = true
           Box.name = '__mxrealitySkybox'
           Box.matrixAutoUpdate = false
           Box.updateMatrix()
@@ -651,7 +661,7 @@
         var cube = new THREE.Mesh(cubeGeometry, materials)
         cube.applyMatrix(new THREE.Matrix4().makeScale(1, 1, -1))
         cube.name = '__mxrealitySlice'
-        cube.visible = false
+        cube.visible = true
         cube.matrixAutoUpdate = false
         cube.updateMatrix()
         that.VRObject.add(cube)
@@ -667,7 +677,7 @@
         that.cubeCameraSphere = new THREE.Mesh(new THREE.SphereGeometry(that._containerRadius * that._cubeCameraTimes, 180, 180), material)
         that.cubeCameraSphere.position.set(0, 0, 0)
         that.cubeCameraSphere.name = '__mxrealitySlice'
-        that.cubeCameraSphere.visible = false
+        that.cubeCameraSphere.visible = true
         that.cubeCameraSphere.matrixAutoUpdate = false
         that.cubeCameraSphere.updateMatrix()
         that.VRObject.add(that.cubeCameraSphere)
@@ -695,7 +705,7 @@
             'playsinline': true,
             'preload': 'auto',
             'x-webkit-airplay': 'allow',
-            'x5-playsinline': true,
+            // 'x5-playsinline': true,
             'x5-video-player-type': 'h5',
             'x5-video-player-fullscreen': true,
             'x5-video-orientation': 'portrait',
@@ -712,22 +722,48 @@
           }
         }
         if (that.resType.sliceVideo == resType) {
-          if (Hls.isSupported()) {
-            that.hls = new Hls(that.hlsConfig)
-            that.hls.attachMedia(video)
-            that.hls.loadSource(recUrl)
-            that.hls.on(Hls.Events.MANIFEST_PARSED, function () {
-              that._play()
+          function useHls () {
+            that.hlsPlayer = new Hls(that.hlsConfig)
+            that.hlsPlayer.loadSource(recUrl)
+            that.hlsPlayer.attachMedia(video)
+            that.hlsPlayer.on(Hls.Events.MANIFEST_PARSED, function () {
               video.play()
-              that.videoPlayHook()
             })
-          } else {
+          }
+
+          function useXMpegUrl () {
             var source = AVR.createTag('source', {
               src: recUrl,
               type: 'application/x-mpegURL'
             }, null)
-
             video.appendChild(source)
+          }
+
+          function useVndAppleMpegUrl () {
+            video.src = recUrl
+            video.addEventListener('loadedmetadata', function () {
+              video.play()
+            })
+          }
+          if (that.liveSettings.usePlugin) {
+            that.liveSettings.loadPlugin(video)
+          } else if (that.liveSettings.forceUseHls) {
+            useHls()
+            console.info('force use hls')
+          } else if (that.liveSettings.forceUseVndAppleMpegUrl) {
+            useVndAppleMpegUrl()
+            console.info('force use application/vnd.apple.mpegurl')
+          } else if (that.liveSettings.forceUseXmpegUrl) {
+            useXMpegUrl()
+            console.info('force use application/x-mpegURL')
+          } else if (Hls.isSupported()) {
+            useHls()
+          } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            useVndAppleMpegUrl()
+          } else if (video.canPlayType('application/x-mpegURL')) {
+            useXMpegUrl()
+          } else {
+            console.error('The browser does not support the current live stream,' + recUrl)
           }
         } else if (that.resType.flvVideo == resType) {
           if (!flvjs.isSupported()) {
@@ -821,12 +857,13 @@
         var obj = that.VRObject.getObjectByName('__mxrealityDefault')
         if (obj) {
           obj.material = material
+          obj.visible = true
         } else {
           var phiStart = -Math.PI / 2
           var geometry = new THREE.SphereBufferGeometry(that.vrbox.radius, that.vrbox.widthSegments, that.vrbox.heightSegments, phiStart)
           geometry.scale(-1, 1, 1) // x取反（面朝里）
           mesh = new THREE.Mesh(geometry, material)
-          mesh.visible = false
+          mesh.visible = true
           mesh.name = '__mxrealityDefault'
           if (isImg) {
             mesh.matrixAutoUpdate = false
@@ -1542,6 +1579,11 @@
         //
         // public methods
         //
+        this.arrowLeft = 37
+        this.arrowUp = 38
+        this.arrowRight = 39
+        this.arrowDown = 40
+        this.arrowSpeed = 0.05
 
         this.getPolarAngle = function () {
           return spherical.phi
@@ -1868,6 +1910,47 @@
         }
         this.rotationLeft = rotateLeft
         this.rotationUp = rotateUp
+
+        var _up = 0
+        var _left = 0
+        document.addEventListener('keydown', function (event) {
+          var e = event || window.event || arguments.callee.caller.arguments[0]
+          if (!e) {
+            return
+          }
+          if (e.keyCode == scope.arrowLeft) { // 按左箭头
+            _left = 1
+          }
+          if (e.keyCode == scope.arrowRight) {
+            _left = -1
+          }
+          if (e.keyCode == scope.arrowUp) {
+            _up = 1
+          }
+          if (e.keyCode == scope.arrowDown) {
+            _up = -1
+          }
+          rotateLeft(_left * scope.arrowSpeed)
+          rotateUp(_up * scope.arrowSpeed)
+        })
+        document.addEventListener('keyup', function (event) {
+          var e = event || window.event || arguments.callee.caller.arguments[0]
+          if (!e) {
+            return
+          }
+          if (e.keyCode == scope.arrowLeft) { // 按左箭头
+            _left = 0
+          }
+          if (e.keyCode == scope.arrowRight) {
+            _left = 0
+          }
+          if (e.keyCode == scope.arrowUp) {
+            _up = 0
+          }
+          if (e.keyCode == scope.arrowDown) {
+            _up = 0
+          }
+        })
 
         this.domElement.addEventListener('mousedown', mousedown, false)
         this.domElement.addEventListener('mousemove', function (e) {

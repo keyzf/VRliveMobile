@@ -1,14 +1,2669 @@
-var VR = function (e, t, i, r, o) { this.scene = e, this.renderer = t, this.container = i, AVR.initDomStyle(i), AVR.setCameraPara(this, r, o), this.vrbox = { radius: 2, widthSegments: 180, heightSegments: 180, width: 2, height: 2, depth: 2 }, this.destoryed = !1, this.video = null, this.audio = null, this.toolBar = null, this.clock = new THREE.Clock, this.VRObject = new THREE.Object3D, this.defaultAutoHideLeftTime = 3, this.defaultVoiceHideLeftTime = 2, this.defaultVolume = .3, this.sliceSegment = 0, this._controlTarget = new THREE.Vector3(0, 0, 1e-4), this._cubeCameraTimes = .96, this.resType = { video: "video", box: "box", slice: "slice", sliceVideo: "sliceVideo", flvVideo: "flvVIdeo" }, this.videoPlayHook = function () { console.log("video play") }, this.videoPauseHook = function () { console.log("video pause") }, this.asteroidConfig = { enable: !1, asteroidFPS: 10, asteroidFov: 135, asteroidForwardTime: 2600, asteroidWaitTime: 2e3, asteroidDepressionRate: .5, asteroidTop: 1, cubeResolution: 2048, rotationAngleOfZ: 0 }, this.VRhint = "请取消屏幕翻转锁定后装入VR盒子中", this.camera = new THREE.PerspectiveCamera(this.cameraPara.fov, this.cameraPara.aspect, this.cameraPara.near, this.cameraPara.far), this.camera.lookAt(this._controlTarget), this.cameraEvt = { controlGroup: function () { }, updatePosition: function () { }, hover: function () { }, leave: function () { } }, this._takeScreenShot = !1, this.timerList = {}, this.camera.position.set(this.cameraPosition.x, this.cameraPosition.y, this.cameraPosition.z), this.loadProgressManager = new THREE.LoadingManager(function (e) { console.log("loaded") }, function (e, t, i) { console.log("item=", e, "loaded", t, "total=", i) }, function (e, t) { console.log(e, t) }), this.scene.add(this.camera), this.scene.add(this.VRObject), this.effect = AVR.stereoEffect(this.renderer), AVR.bindOrientationEnevt(this, this._controlTarget) }; VR.prototype.destory = function () { that.video && (that.video.pause(), that.video = null), that.audio && (that.audio.pause(), that.audio = null); for (var e in that.timerList) clearInterval(that.timerList[e]); that.destoryed = !0 }, VR.prototype.init = function (e) { function t() { v.controls && v.controls.reset() } function i(e) { T.isMouseDown = !0; var t = e.clientX || e.changedTouches[0].clientX, i = e.clientY || e.changedTouches[0].clientY; f.set(t, i), p.set(t, i), v.autoHideLeftTime = v.defaultAutoHideLeftTime, T.isActive = !0 } function r(e) { T.isMouseDown = !1 } function o(e) { if (e.preventDefault(), v.autoHideLeftTime = v.defaultAutoHideLeftTime, v.toolBar.isActive = !0, T.isMouseDown) { var t = e.clientX || e.changedTouches[0].clientX, i = e.clientY || e.changedTouches[0].clientY, r = p.y - i; r >= 5 && a(6), r <= -5 && a(-10), p.set(t, i) } } function n(e) { if (void 0 === v.controls.defaultDampingFactor && (v.controls.defaultDampingFactor = v.controls.dampingFactor), void 0 === v.controls.object.defaultFov && (v.controls.object.defaultFov = v.controls.object.fov), e) { var t = 0, i = [];[].forEach.call(e, function (e) { var r = b[e.identifier]; if (r && (r.y = e.pageY, r.x = e.pageX, i.push(e.identifier)), t++ , t >= 2) { var o = b[i[0]], n = b[i[1]], a = Math.sqrt(Math.pow(o.x - n.x, 2) + Math.pow(o.y - n.y, 2)), s = (a - y) / 4; return v.controls.object.fov - s < 140 && v.controls.object.fov - s > 10 && y && (v.controls.enable = !1, v.controls.object.fov -= s, v.controls.dampingFactor = v.controls.defaultDampingFactor * v.controls.object.defaultFov / v.controls.object.fov), y = a, void (t = 0) } }) } } function a(e) { clearInterval(v.timerList.slideBarAniateTimer), v.timerList.slideBarAniateTimer = animateTimer = setInterval(function () { var t = T.toolbar.clientHeight + e; t >= T.defaultHeight && t <= T.defaultMaxHeight ? (T.toolbar.style.height = t + "px", T.isActive = !0) : (clearInterval(animateTimer), e > 0 ? (T.isActive = !0, T.moreBtn.style.transform = "rotate(-180deg)", T.moreBtn.style.webkitTransform = "rotate(-180deg)", T.toolbar.style.height = T.defaultMaxHeight + "px", T.about.style.display = "block") : (T.isActive = !1, T.moreBtn.style.transform = "rotate(0deg)", T.moreBtn.style.webkitTransform = "rotate(0deg)", T.toolbar.style.height = T.defaultHeight + "px", T.about.style.display = "none")), v.autoHideLeftTime = v.defaultAutoHideLeftTime }, 1) } function s(e) { v.autoHideLeftTime = v.defaultAutoHideLeftTime, T.isActive = !0; var t = e.clientX || e.changedTouches[0].clientX, i = e.clientY || e.changedTouches[0].clientY; T.isMouseDown && (T.moreList.scrollLeft += 2.5 * (p.x - t)), p.set(t, i) } function c(e) { v.camera.fov += .05 * e, v.camera.updateProjectionMatrix() } function l(e) { if (e.style.borderColor = "green", e.style.color = "green", v.cameraEvt.controlGroup.length) { var t = v.cameraEvt.controlGroup.getObjectByName("__focus"); t.visible = !0 } } function d(e) { if (e.style.borderColor = "white", e.style.color = "white", v.cameraEvt.controlGroup.length) { var t = v.cameraEvt.controlGroup.getObjectByName("__focus"); t.visible = !1 } } function u() { var e = v.video || v.audio; if (e) { var t = AVR.getBoundingClientRect(v.container); T.voice_bar.style.display = "block"; var i, r = T.voice_bar, o = r.firstChild, n = o.firstChild, a = (n.firstChild, !1), s = 0, c = 0; e.volume = v.defaultVolume; var l = T.voice_bar.clientHeight, d = (v.container.clientHeight - l) / 2, u = l + d; n.style.height = e.volume * l + "px", r.addEventListener("mousedown", function (e) { r.style.opacity = 1 }, !1), o.addEventListener("click", function (i) { var r = (i.clientY || i.changedTouches[0].clientY) - t.top; v.voiceHideLeftTime = v.defaultVoiceHideLeftTime; var o = u - r; o / l <= 1 && (n.style.height = o + "px", e.volume = o / l) }, !1), r.addEventListener("mouseout", function (e) { a = !1 }, !1), r.addEventListener("mousedown", function (e) { a = !0 }, !1), r.addEventListener("mouseup", function (e) { a = !1 }, !1), r.addEventListener("mousemove", function (i) { var r = (i.clientY || i.changedTouches[0].clientY) - t.top; if (v.voiceHideLeftTime = v.defaultVoiceHideLeftTime, a) { var o = u - r; n.style.height = o + "px", o / l <= 1 && (e.volume = o / l) } }, !1), r.addEventListener("touchstart", function (e) { e.preventDefault(), v.voiceHideLeftTime = v.defaultVoiceHideLeftTime, i = n.clientHeight, s = e.touches[0].pageY, r.style.opacity = 1 }, !1), r.addEventListener("touchmove", function (t) { t.preventDefault(), v.voiceHideLeftTime = v.defaultVoiceHideLeftTime, c = t.touches[0].pageY; var r = i + (s - c); r / l <= 1 && (n.style.height = r + "px", e.volume = r / l) }, !1), r.addEventListener("touchend", function (e) { i = 0 }, !1), clearInterval(v.timerList.voiceBarActiveTimer), v.timerList.voiceBarActiveTimer = setInterval(function () { v.voiceHideLeftTime <= 0 ? r.style.opacity = 0 : v.toolBar.isActive ? null : v.voiceHideLeftTime-- }, 1e3) } } function m() { if (!v.destoryed) { var t = v.container.offsetWidth, i = v.container.offsetHeight; if (v.camera.aspect = t / i, AVR.isMobileDevice() && AVR.isCrossScreen() ? (v.cameraEvt.updatePosition(), v.effect.setSize(t, i), v.effect.render(v.scene, v.camera)) : (v.renderer.setSize(t, i), v.renderer.setClearColor(new THREE.Color(16777215)), v.renderer.render(v.scene, v.camera)), v._takeScreenShot) { v._takeScreenShot = !1; var r = v.renderer.domElement.toDataURL("image/jpeg"); v._takeScreenShotCallback(r) } v.camera.updateProjectionMatrix(), v.controls && v.controls.update(), e() } } function h() { m(), requestAnimationFrame(h) } var v = this, f = new THREE.Vector2, p = new THREE.Vector2; v.toolBar = AVR.toolBar(v.container); var g, E, T = v.toolBar, b = {}, y = 0; T.defaultHeight = T.toolbar.clientHeight, T.defaultMaxHeight = 5 * T.defaultHeight, T.isMouseDown = !1, v.container.addEventListener("click", function () { v.autoHideLeftTime = v.defaultAutoHideLeftTime, T.toolbar.style.display = "block" }), T.gyroBtn.addEventListener("click", function () { v.gyroBtnClick() }, !1), T.vrBtn.addEventListener("click", function () { v.vrBtnClick() }, !1), T.moreBtn.addEventListener("click", function () { v.moreBtnClick() }, !1), v.container.addEventListener("touchstart", function (e) { v.touchStart(e) }, !1), v.container.addEventListener("touchmove", function (e) { v.touchMove(e) }, !1), v.container.addEventListener("touchend", function (e) { v.touchEnd(e) }, !1), T.gyroResetBtn.addEventListener("click", t, !1), T.toolbar.addEventListener("mousedown", i, !1), T.toolbar.addEventListener("touchstart", i, !1), T.toolbar.addEventListener("mousemove", o, !1), T.toolbar.addEventListener("touchmove", o, !1), T.toolbar.addEventListener("mouseup", r, !1), T.toolbar.addEventListener("touchend", r, !1), T.toolbar.addEventListener("mouseout", function (e) { v.autoHideLeftTime = v.defaultAutoHideLeftTime, T.isActive = !1 }, !1), v.renderer.domElement.addEventListener("wheel", function (e) { var t = e.deltaY > 0 ? 15 : -15; v.camera.fov + .05 * t >= 10 && v.camera.fov + .05 * t <= 120 && c(t) }, !1), T.moreList.addEventListener("mousemove", s, !1), T.moreList.addEventListener("touchmove", s, !1), v.moreBtnClick = function (e) { a(T.toolbar.clientHeight > T.defaultHeight ? -10 : 6) }, v.vrBtnClick = function (e) { var t = v.toolBar.vrBtn; AVR.isMobileDevice() ? AVR.OS.isWeixin() && !AVR.OS.isiOS() ? "landscape" == v.video.getAttribute("x5-video-orientation") ? (v.video.setAttribute("x5-video-orientation", "portraint"), d(t)) : (v.video.setAttribute("x5-video-orientation", "landscape"), l(t)) : AVR.isCrossScreen() ? (l(t), AVR.fullscreen(v.container)) : (d(t), AVR.msgBox(v.VRhint, 5, v.container)) : (t.getAttribute("fullscreen") ? (d(t), t.removeAttribute("fullscreen")) : (l(t), t.setAttribute("fullscreen", "true")), AVR.fullscreen(v.container)) }, v.gyroBtnClick = function (e) { var t = v.toolBar.gyroBtn; "active" == t.getAttribute("active") ? (v.controls.gyroFreeze(), d(t), d(T.circle1), d(T.circle2), t.removeAttribute("active")) : (v.controls.gyroUnfreeze(), t.setAttribute("active", "active"), l(t), l(T.circle1), l(T.circle2)) }, v.touchStart = function (e) { e.targetTouches && ([].forEach.call(e.targetTouches, function (e) { b[e.identifier] || (b[e.identifier] = new THREE.Vector2(0, 0)) }), clearInterval(v.timerList.renderTouchersRimer), v.timerList.renderTouchersRimer = setInterval(function () { n(g) }, 1)) }, v.touchEnd = function (e) { e.targetTouches && ([].forEach.call(e.changedTouches, function (e) { var t = b[e.identifier]; t && delete b[e.identifier] }), 0 === e.targetTouches.length && (y = 0, v.controls.enable = !0, clearInterval(E))) }, v.touchMove = function (e) { g = e.touches }, v.windowResize = function () { AVR.isFullscreen() ? AVR.isMobileDevice() ? AVR.isCrossScreen() ? l(v.toolBar.vrBtn) : d(v.toolBar.vrBtn) : l(v.toolBar.vrBtn) : AVR.OS.isWeixin() && !AVR.OS.isiOS() ? ("landscape" == v.video.getAttribute("x5-video-orientation") ? l(v.toolBar.vrBtn) : d(v.toolBar.vrBtn), AVR.isCrossScreen() ? l(v.toolBar.vrBtn) : d(v.toolBar.vrBtn)) : (AVR.isCrossScreen() ? l(v.toolBar.vrBtn) : d(v.toolBar.vrBtn), d(v.toolBar.vrBtn)) }, window.addEventListener("resize", function () { u() }, !1), v._play = function () { T.btn.style.border = "none", T.btn.style.fontWeight = 800, T.btn.innerHTML = "<b>||</b>" }, v._pause = function () { T.btn.innerText = "", T.btn.style.borderTop = "0.6rem solid transparent", T.btn.style.borderLeft = "1rem solid white", T.btn.style.borderBottom = "0.6rem solid transparent" }, v.bindVolumeBar = u, h(), clearInterval(v.timerList.toolBarAutoHideTimer), v.timerList.toolBarAutoHideTimer = setInterval(function () { T.isActive || (v.autoHideLeftTime < 0 ? (T.toolbar.style.display = "none", v.autoHideLeftTime = v.defaultAutoHideLeftTime, T.isActive = !1) : v.autoHideLeftTime--), v.windowResize() }, 1e3) }, VR.prototype.takeScreenShot = function (e) { this._takeScreenShot = !0, this._takeScreenShotCallback = e }, VR.prototype.playPanorama = function (e, t) { function i(e) { x.paused ? (d._play(), x.play(), d.videoPlayHook()) : (d._pause(), x.pause(), d.videoPauseHook()) } function r(e) { rect = AVR.getBoundingClientRect(d.container); var t = (e.clientX || e.changedTouches[0].clientX) - rect.left; x.currentTime = x.duration * (t / this.clientWidth) } function o(e) { d.video.buffTimer || (clearInterval(d.timerList.videoBuffTimer), d.timerList.videoBuffTimer = d.video.buffTimer = setInterval(function (e) { var t = 0; 0 != x.buffered.length && (t += x.buffered.end(0)), t >= x.duration && clearInterval(d.video.buffTimer), u.loadedProgress.style.width = t / x.duration * 100 + "%" }, 500)) } function n(e, t) { t = t || !1, material = new THREE.MeshBasicMaterial({ overdraw: !0, map: e }); var i = d.VRObject.getObjectByName("__mxrealityDefault"); if (i) i.material = material; else { var r = -Math.PI / 2, o = new THREE.SphereBufferGeometry(d.vrbox.radius, d.vrbox.widthSegments, d.vrbox.heightSegments, r); o.scale(-1, 1, 1), mesh = new THREE.Mesh(o, material), mesh.visible = !1, mesh.name = "__mxrealityDefault", t && (mesh.matrixAutoUpdate = !1, mesh.updateMatrix(), d.toolBar.timeInfo.style.display = "none"), d.VRObject.add(mesh) } d.asteroidConfig.enable && (d.asteroidForward = function (e) { a(e) }) } function a(e) { d.controls && (d.controls.reset(), d.controls.enable = !1); var t = d.asteroidConfig, i = d.camera.fov, r = d._containerRadius * (.9 * d._cubeCameraTimes); d.camera.position.y = r * t.asteroidTop, d.camera.rotation.x = THREE.Math.degToRad(-90), d.camera.fov = t.asteroidFov; var o = t.asteroidForwardTime * t.asteroidFPS / 300, n = r / o, a = d.camera.fov - i, s = a / o, c = (Math.PI / 2 / o, !1), l = !1, u = new THREE.Vector3(d._controlTarget.x, d._controlTarget.y, d._controlTarget.z); setTimeout(function () { d.timerList.asteroidForwardTimer = asteroidForwardTimer = setInterval(function () { t.asteroidTop * d.camera.position.y - n >= 0 ? (d.camera.position.y -= n * t.asteroidTop, d.camera.lookAt(u), u.z *= 1.25) : c = !0, d.camera.fov - s >= i ? d.camera.fov -= s : l = !0, c && l && (clearInterval(asteroidForwardTimer), d.controls.enable = !0, d.camera.position.y = 0, d.camera.fov = i, void 0 !== e && e()) }, t.asteroidFPS) }, t.asteroidWaitTime) } var s = ["__mxrealitySkybox", "__mxrealitySlice", "__mxrealityDefault"]; for (var c in s) { var l = this.VRObject.getObjectByName(s[c]); l && (l.visible = !1), this.cubeCameraSphere && (this.cubeCameraSphere.visible = !1) } var d = this, u = d.toolBar; if (d._containerRadius = d.resType.box == t || d.resType.slice == t ? d.vrbox.width / 2 : d.vrbox.radius, d.autoHideLeftTime = d.defaultAutoHideLeftTime, d.voiceHideLeftTime = d.defaultVoiceHideLeftTime, d.resType.box == t) { d.toolBar.timeInfo.style.display = "none"; var m = [], h = [], v = new Image; v.crossOrigin = "Anonymous", v.src = e, v.onload = function () { for (var e, t, i = v.height, r = 0; r < 6; r++)m[r] = new THREE.Texture, e = document.createElement("canvas"), t = e.getContext("2d"), e.height = i, e.width = i, t.drawImage(v, i * r, 0, i, i, 0, 0, i, i), m[r].image = e, m[r].needsUpdate = !0, h.push(new THREE.MeshBasicMaterial({ map: m[r] })); var o = d.VRObject.getObjectByName("__mxrealitySkybox"); if (o) o.material = h; else { var o = new THREE.Mesh(new THREE.CubeGeometry(d.vrbox.width, d.vrbox.height, d.vrbox.depth), new THREE.MultiMaterial(h)); o.applyMatrix((new THREE.Matrix4).makeScale(1, 1, -1)), o.visible = !1, o.name = "__mxrealitySkybox", o.matrixAutoUpdate = !1, o.updateMatrix(), d.VRObject.add(o), u.btn.addEventListener("click", function (e) { d.controls.autoRotate ? d._pause() : d._play(), d.controls.autoRotate = !d.controls.autoRotate }) } d.loadProgressManager.onLoad() } } else if (d.resType.slice == t) { d.toolBar.timeInfo.style.display = "none"; var f = new THREE.TextureLoader(d.loadProgressManager); f.mapping = THREE.UVMapping; for (var h = [], c = 0; c < e.length; c++) { var p = f.load(e[c]); h.push(new THREE.MeshBasicMaterial({ map: p })) } for (var g = new THREE.CubeGeometry(d.vrbox.width, d.vrbox.height, d.vrbox.depth, d.sliceSegment, d.sliceSegment, d.sliceSegment), E = 0, T = [new THREE.Vector2(0, 0), new THREE.Vector2(1, 0), new THREE.Vector2(1, 1), new THREE.Vector2(0, 1)], c = 0, b = g.faces.length; c < b; c += 2)g.faces[c].materialIndex = E, g.faces[c + 1].materialIndex = E, g.faceVertexUvs[0][c] = [T[3], T[0], T[2]], g.faceVertexUvs[0][c + 1] = [T[0], T[1], T[2]], E++; var l = d.VRObject.getObjectByName("__mxrealitySlice"); if (l) l.material = h, l.geometry = g, l.updateMatrix(); else { var y = new THREE.Mesh(g, h); y.applyMatrix((new THREE.Matrix4).makeScale(1, 1, -1)), y.name = "__mxrealitySlice", y.visible = !1, y.matrixAutoUpdate = !1, y.updateMatrix(), d.VRObject.add(y), d.cubeCamera = new THREE.CubeCamera(d._containerRadius, d.cameraPara.far, d.asteroidConfig.cubeResolution); var w = d.cubeCamera.renderTarget.texture; w.minFilter = THREE.LinearMipMapLinearFilter, d.VRObject.add(d.cubeCamera), material = new THREE.MeshBasicMaterial({ envMap: d.cubeCamera.renderTarget.texture, side: THREE.BackSide }), d.cubeCameraSphere = new THREE.Mesh(new THREE.SphereGeometry(d._containerRadius * d._cubeCameraTimes, 180, 180), material), d.cubeCameraSphere.position.set(0, 0, 0), d.cubeCameraSphere.name = "__mxrealitySlice", d.cubeCameraSphere.visible = !1, d.cubeCameraSphere.matrixAutoUpdate = !1, d.cubeCameraSphere.updateMatrix(), d.VRObject.add(d.cubeCameraSphere), u.btn.addEventListener("click", function (e) { d.controls.autoRotate ? d._pause() : d._play(), d.controls.autoRotate = !d.controls.autoRotate }) } d.asteroidConfig.enable ? (d.cubeCameraSphere.visible = !0, d.asteroidForward = function (e) { d.cubeCamera.update(d.renderer, d.scene), a(e) }) : d.cubeCameraSphere.visible = !1 } else { var R = [d.resType.video, d.resType.sliceVideo, d.resType.flvVideo]; if (R.indexOf(t) >= 0) { if (d.video) for (var x = d.video, A = 0; A < x.childNodes.length; A++)x.removeChild(x.childNodes[A]); else var x = d.video = AVR.createTag("video", { "webkit-playsinline": !0, playsinline: !0, preload: "auto", "x-webkit-airplay": "allow", "x5-playsinline": !0, "x5-video-player-type": "h5", "x5-video-player-fullscreen": !0, "x5-video-orientation": "portrait", style: "object-fit: fill", loop: "loop" }, { allowsInlineMediaPlayback: !0, crossOrigin: "Anonymous" }); if (d.resType.sliceVideo == t) if (AVR.OS.isAndroid() && AVR.OS.isWeixin()) { var H = AVR.createTag("source", { src: e, type: "application/x-mpegURL" }, null); x.appendChild(H) } else if (Hls.isSupported()) d.hls = new Hls, d.hls.attachMedia(x), d.hls.loadSource(e), d.hls.on(Hls.Events.MANIFEST_PARSED, function () { x.play() }); else { var H = AVR.createTag("source", { src: e, type: "application/x-mpegURL" }, null); x.appendChild(H) } else if (d.resType.flvVideo == t) { if (!flvjs.isSupported()) return void console.error("Your browser does not support flvjs"); var S = flvjs.createPlayer({ type: "flv", url: e }); S.attachMediaElement(x), S.load(), S.play() } else x.canPlayType("application/vnd.apple.mpegurl") ? x.src = e : x.src = e; x.removeEventListener("canplaythrough", o), u.progressBar.removeEventListener("click", r), u.btn.removeEventListener("click", i), x.addEventListener("canplaythrough", o, !1), u.progressBar.addEventListener("click", r, !1), u.btn.addEventListener("click", i, !1), x.load(), x.play(), d.video.buffTimer = null; var p = new THREE.VideoTexture(x); p.generateMipmaps = !1, p.minFilter = THREE.LinearFilter, p.magFilter = THREE.LinearFilter, p.format = THREE.RGBAFormat, n(p), clearInterval(d.timerList.videoProgressTimer), d.timerList.videoProgressTimer = d.video.progressTimer = setInterval(function (e) { u.playProgress.style.width = x.currentTime / x.duration * 100 + "%", u.curTime.innerText = AVR.formatSeconds(x.currentTime), u.totalTime.innerText = AVR.formatSeconds(x.duration), d.autoHideLeftTime < 0 && !x.paused ? u.toolbar.style.display = "none" : d.autoHideLeftTime-- }, 1e3), d.loadProgressManager.onLoad() } else new THREE.TextureLoader(d.loadProgressManager).load(e, function (e) { n(e, !0) }) } }, VR.prototype.sphere2BoxPano = function (e, t, i, r) { function o(e, t, i, r) { var o = e.createTexture(); if (!o) return console.log("Failed to create the texture object!"), !1; var a = e.getUniformLocation(t, "u_Sampler"); return n(e, i, o, a, r), !0 } function n(e, t, i, o, n) { m.asteroidConfig.enable && e.pixelStorei(e.UNPACK_FLIP_Y_WEBGL, -1), e.activeTexture(e.TEXTURE0), e.bindTexture(e.TEXTURE_2D, i), e.texParameteri(e.TEXTURE_2D, e.TEXTURE_MIN_FILTER, e.LINEAR), e.texParameteri(e.TEXTURE_2D, e.TEXTURE_WRAP_S, e.CLAMP_TO_EDGE), e.texParameteri(e.TEXTURE_2D, e.TEXTURE_WRAP_T, e.CLAMP_TO_EDGE), e.texImage2D(e.TEXTURE_2D, 0, e.RGB, e.RGB, e.UNSIGNED_BYTE, n), e.uniform1i(o, 0), e.clear(e.COLOR_BUFFER_BIT), e.drawArrays(e.TRIANGLE_STRIP, 0, t), f < 5 ? f++ : r(u()) } function a(e, t) { var i = new Float32Array([-1, 1, 0, 1, -1, -1, 0, 0, 1, 1, 1, 1, 1, -1, 1, 0]), r = 4, o = e.createBuffer(); if (!o) return console.log("Failed to create the buffer object!"), -1; e.bindBuffer(e.ARRAY_BUFFER, o), e.bufferData(e.ARRAY_BUFFER, i, e.STATIC_DRAW); var n = i.BYTES_PER_ELEMENT, a = e.getAttribLocation(t, "a_Position"); e.vertexAttribPointer(a, 2, e.FLOAT, !1, 4 * n, 0), e.enableVertexAttribArray(a); var s = e.getAttribLocation(t, "a_TexCoord"); return e.vertexAttribPointer(s, 2, e.FLOAT, !1, 4 * n, 2 * n), e.enableVertexAttribArray(s), r } function s(e, t) { var i, r = c(e, t), o = c(e); return i = e.createProgram(), e.attachShader(i, o), e.attachShader(i, r), e.linkProgram(i), e.getProgramParameter(i, e.LINK_STATUS) ? (e.useProgram(i), e.enableVertexAttribArray(i.vertexPositionAttribute), i.vertexColorAttribute = e.getAttribLocation(i, "aVertexColor"), i.pMatrixUniform = e.getUniformLocation(i, "uPMatrix"), i.mvMatrixUniform = e.getUniformLocation(i, "uMVMatrix"), i) : null } function c(e, t) { var i, r; if (t) { if (i = l(t), !i) return null; r = e.createShader(e.FRAGMENT_SHADER) } else i = d(), r = e.createShader(e.VERTEX_SHADER); return e.shaderSource(r, i), e.compileShader(r), e.getShaderParameter(r, e.COMPILE_STATUS) ? r : (console.log(e.getShaderInfoLog(r)), null) } function l(e) { var t = "", i = "\n        precision mediump float;\n        varying vec2 v_TexCoord;\n        uniform sampler2D u_Sampler;\n        uniform float PI;\n", r = "\n        if(abs(theta)>PI){\n            if(theta>PI){\n                theta -= 2.0*PI;\n            }else{\n                theta += 2.0*PI;\n            }\n        }\n        if(abs(phi)>PI/2.0){\n            if(phi>PI/2.0){\n                phi -= PI;\n            }else{                phi += PI;\n            }\n        }\n        float x = theta/PI*0.5 + 0.5;\n        float y = phi/PI*2.0*0.5 + 0.5;\n        gl_FragColor = texture2D(u_Sampler, vec2(x,y));\n"; return "z" == e ? t = i + "\n\t\t\tvoid main() {\n\t\t\t\tfloat r = 0.5;\n\t\t\t\tvec2 orig = vec2(0.5-v_TexCoord.x,v_TexCoord.y-0.5);\n\t\t\t\tfloat theta = atan(orig.x,r);\n\t\t\t\tfloat phi = atan(orig.y*cos(theta),r);" + r + "\n\t\t\t}\n" : "nz" == e ? t = i + "\n\t\t\tvoid main() {\n\t\t\t\tfloat r = 0.5;\n\t\t\t\tvec2 orig = vec2(0.5-v_TexCoord.x,v_TexCoord.y-0.5);\n\t\t\t\tfloat theta = atan(orig.x,r);\n\t\t\t\tfloat phi = atan(orig.y*cos(theta),r);\n        \t\ttheta = theta+PI;\n" + r + "\n\t\t\t}\n" : "x" == e ? t = i + "\n\t\t\tvoid main() {\n\t\t\t\tfloat r = 0.5;\n\t\t\t\tvec2 orig = vec2(v_TexCoord.x-0.5,v_TexCoord.y-0.5);\n\t\t\t\tfloat theta = atan(r,orig.x);\n\t\t\t\tfloat phi = atan(orig.y*sin(theta),r);" + r + "\n\t\t\t}\n" : "nx" == e ? t = i + "\n\t\t\tvoid main() {\n\t\t\t\tfloat r = 0.5;\n\t\t\t\tvec2 orig = vec2(v_TexCoord.x-0.5,v_TexCoord.y-0.5);\n\t\t\t\tfloat theta = atan(r,orig.x);\n\t\t\t\tfloat phi = atan(orig.y*sin(theta),r);\n        \t\ttheta = theta+PI;" + r + "\n\t\t\t}\n" : "y" == e ? t = i + "\n\t\t\tvoid main() {\n\t\t\t\tfloat r = 0.5;\n\t\t\t\tvec2 orig = vec2(0.5-v_TexCoord.x,0.5-v_TexCoord.y);\n        \t\tfloat theta = atan(orig.x,orig.y);\n        \t\tfloat phi = atan(r*sin(theta),orig.x);" + r + "\n\t\t\t}\n" : "ny" == e ? t = i + "\n\t\t\tvoid main() {\n\t\t\t\tfloat r = 0.5;\n\t\t\t\tvec2 orig = vec2(0.5-v_TexCoord.x,v_TexCoord.y-0.5);\n\t\t\t\tfloat theta = atan(orig.x,orig.y);\n\t\t\t\tfloat phi = atan(r*sin(theta),orig.x);\n\t\t\t\tphi = -phi;" + r + "\n\t\t\t}\n" : console.error("shader fragment type error!"), t } function d() { var e = "\n        attribute vec4 a_Position;\n        attribute vec2 a_TexCoord;\n        varying vec2 v_TexCoord;\n        void main() {\n            gl_Position= a_Position;\n            v_TexCoord = a_TexCoord;\n        }\n"; return e } function u() { var e = document.createElement("canvas"), r = e.getContext("2d"); e.width = 6 * t, e.height = i; var o = document.createElement("canvas"), n = o.getContext("2d"); o.width = t, o.height = i; var a = 180 * Math.PI / 180; if (n.rotate(a), m.sliceSegment) { var s = [], c = document.createElement("canvas"); c.width = i / m.sliceSegment, c.height = i / m.sliceSegment; var l = c.getContext("2d"); for (var d in v) { n.drawImage(v[d], 0, 0, -t, -i); for (var u = 0; u < m.sliceSegment; u++)for (var h = 0; h < m.sliceSegment; h++)l.putImageData(n.getImageData(h * (i / m.sliceSegment), u * (i / m.sliceSegment), i * (h + 1) / m.sliceSegment, i * (u + 1) / m.sliceSegment), 0, 0), s.push(c.toDataURL("image/jpeg")) } return s } for (var d in v) n.drawImage(v[d], 0, 0, -t, -i), r.drawImage(o, t * d, 0, t, i); return e.toDataURL("image/jpeg") } var m = this, h = { x: "x", nx: "nx", ny: "ny", y: "y", z: "z", nz: "nz" }, v = [], f = 0, p = 0, g = new Image; g.crossOrigin = "Anonymous", g.src = e, g.onload = function () { for (var e in h) { var r = document.createElement("canvas"); r.width = t, r.height = i, r.id = "face_" + e, v[p] = r; var n = r.getContext("webgl", { preserveDrawingBuffer: !0 }), c = s(n, e), l = a(n, c), d = n.getUniformLocation(c, "PI"); n.uniform1f(d, Math.PI), n.clearColor(0, 0, 0, 1), o(n, c, l, g) || console.log("Failed to intialize the texture."), p++ } } }; var AR = function (e, t, i, r, o) { var n = this; this.scene = e, this.renderer = t, this.container = i, AVR.setCameraPara(n, r, o), this.constraints = {}, this.video = null, this.openAudio = !1, this.cameraIndex = 1, this._controlTarget = new THREE.Vector3(1e-4, 0, 0), this.camera = new THREE.PerspectiveCamera(this.cameraPara.fov, this.cameraPara.aspect, this.cameraPara.near, this.cameraPara.far), this.camera.position.set(this.cameraPosition.x, this.cameraPosition.y, this.cameraPosition.z), this.cameraReady = !1, this.scene.add(this.camera), this.clock = new THREE.Clock, this.tempCanvas = document.createElement("canvas"), this.effect = AVR.stereoEffect(this.renderer), this._takeScreenShot = !1 }; AR.prototype.init = function () { function e(e) { i.video.srcObject = e } function t(e) { alert(e) } var i = this; if (AVR.bindOrientationEnevt(i, i._controlTarget), this.video = AVR.createTag("video", { "webkit-playsinline": !0, playsinline: !0, preload: "auto", "x-webkit-airplay": "allow", "x5-playsinline": !0, "x5-video-player-type": "h5", "x5-video-player-fullscreen": !0, "x5-video-orientation": "portrait", style: "object-fit: fill", autoplay: "autoplay" }, { allowsInlineMediaPlayback: !0 }), this.video.style.zIndex = "-99999", this.video.style.position = "absolute", this.video.style.left = "0px", this.video.style.top = "0px", this.video.style.width = "2px", this.video.style.height = "2px", document.body.appendChild(this.video), this.video.oncanplaythrough = function () { i.cameraReady = !0, i.video.readyState === i.video.HAVE_ENOUGH_DATA && (i.cameraTexture = new THREE.VideoTexture(i.video), i.cameraTexture.generateMipmaps = !1, i.cameraTexture.format = THREE.RGBAFormat, i.cameraTexture.maxFilter = THREE.NearestFilter, i.cameraTexture.minFilter = THREE.NearestFilter, i.scene.background = i.cameraTexture, i.cameraTexture.needsUpdate = !0) }, navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia, window.URL = window.URL || window.webkitURL || window.mozURL || window.msURL, navigator.getUserMedia) { var r = { audio: i.openAudio, video: { facingMode: { exact: i.cameraIndex ? "environment" : "user" } } }; navigator.getUserMedia(r, e, t) } else alert("Native device meadia streaming(getUserMdeia) not supported in this browser.") }, AR.prototype.takeCameraPhoto = function () { var e = this.tempCanvas.getContext("2d"); return e.clearRect(0, 0, window.innerWidth, window.innerHeight), e.drawImage(this.video, 0, 0, window.innerWidth, window.innerHeight), e.toDataURL("image/jpeg") }, AR.prototype.takeScreenShot = function (e) { this._takeScreenShot = !0, this._takeScreenShotCallback = e }, AR.prototype.play = function () { function e() { if (i._takeScreenShot) { i._takeScreenShot = !1; var e = i.renderer.domElement.toDataURL("image/jpeg"); i._takeScreenShotCallback(e) } if (i.cameraReady) { var t = window.innerWidth, r = window.innerHeight; i.camera.aspect = t / r, i.cameraTexture.repeat.y = r / i.video.videoHeight, i.cameraTexture.offset.x = 0, i.cameraTexture.offset.y = 0, AVR.isMobileDevice() && AVR.isCrossScreen() ? (i.cameraTexture.repeat.x = t / (2 * i.video.videoWidth), i.effect.setSize(t, r), i.effect.render(i.scene, i.camera)) : (i.cameraTexture.repeat.x = t / i.video.videoWidth, i.renderer.setSize(t, r), i.renderer.setClearColor(new THREE.Color(16777215)), i.renderer.render(i.scene, i.camera)), i.camera.updateProjectionMatrix() } i.controls && i.controls.update(i.clock.getDelta()) } function t() { requestAnimationFrame(t), e() } var i = this; t() }; var AVR = {
-    debug: !1, startGyro: function (e) { function t(t) { e(t) } window.addEventListener("deviceorientation", t, !1) }, stereoEffect: function (e) { this.separation = 1, this.focalLength = 15; var t, i, r, o, n, a, s, c, l, d, u, m, h = new THREE.Vector3, v = new THREE.Quaternion, f = new THREE.Vector3, p = new THREE.PerspectiveCamera, g = new THREE.PerspectiveCamera; return e.autoClear = !1, this.setSize = function (r, o) { t = r / 2, i = o, e.setSize(r, o) }, this.render = function (E, T) { E.updateMatrixWorld(), void 0 === T.parent && T.updateMatrixWorld(), T.matrixWorld.decompose(h, v, f), r = THREE.Math.radToDeg(2 * Math.atan(Math.tan(.5 * THREE.Math.degToRad(T.fov)))), c = T.near / this.focalLength, d = Math.tan(.5 * THREE.Math.degToRad(r)) * this.focalLength, l = .5 * d * T.aspect, a = d * c, s = -a, u = (l + this.separation / 2) / (2 * l), m = 1 - u, o = 2 * l * c * m, n = 2 * l * c * u, p.projectionMatrix.makePerspective(-o, n, a, s, T.near, T.far), p.position.copy(h), p.quaternion.copy(v), p.translateX(-this.separation / 2), g.projectionMatrix.makePerspective(-n, o, a, s, T.near, T.far), g.position.copy(h), g.quaternion.copy(v), g.translateX(this.separation / 2), e.setViewport(0, 0, 2 * t, i), e.setViewport(0, 0, t, i), e.render(E, p), e.setViewport(t, 0, t, i), e.render(E, g) }, this }, orbitControls: function (e, t) {
-        var i = function (e, t) {
-            function i() { return 2 * Math.PI / 60 / 60 * p.autoRotateSpeed } function r(e) { p.defaultDirectionOfRotation ? p.usingGyro ? b.theta -= e : b.theta += e : b.theta -= e } function o(e) { p.defaultDirectionOfRotation ? p.usingGyro ? b.phi -= e : b.phi += e : b.phi -= e } function n(e, t, i, r) { var o, n, a, s = e * t + i * r; if (s > .499) { a = 2 * Math.atan2(e, r), o = Math.PI / 2, n = 0; var c = new THREE.Vector3(o, n, a); return c } if (s < -.499) { a = -2 * Math.atan2(e, r), o = -Math.PI / 2, n = 0; var c = new THREE.Vector3(o, n, a); return c } var l = e * e, d = t * t, u = i * i; a = Math.atan2(2 * t * r - 2 * e * i, 1 - 2 * d - 2 * u), o = Math.asin(2 * s), n = Math.atan2(2 * e * r - 2 * t * i, 1 - 2 * l - 2 * u); var c = new THREE.Vector3(o, n, a); return c } function a(e, t) { return 2 * Math.PI * e / t * p.rotateSpeed } function s(e, t) { return 2 * Math.PI * e / t * p.rotateSpeed } function c(e) { _ = !0; var t = e.clientX || e.changedTouches[0].clientX, i = e.clientY || e.changedTouches[0].clientY; y.set(t, i) } function l(e) { var t = e.clientX || e.changedTouches[0].clientX, i = e.clientY || e.changedTouches[0].clientY; w.set(t, i), R.subVectors(w, y); var n = void 0 !== p.domElement.clientWidth ? p.domElement.clientWidth : window.innerWidth; r(a(R.x, n)); var c = void 0 !== p.domElement.clientHeight ? p.domElement.clientHeight : window.innerHeight; o(s(R.y, c)), y.copy(w) } function d(e) { _ = !1 } function u(e) { _ = !0, y.set(e.touches[0].pageX, e.touches[0].pageY), p.usingGyro = !1 } function m(e) { e.preventDefault(), w.set(e.touches[0].pageX, e.touches[0].pageY), R.subVectors(w, y); var t = void 0 != p.domElement.clientWidth ? p.domElement.clientWidth : window.innerWidth; r(a(R.x, t)); var i = void 0 !== p.domElement.clientHeight ? p.domElement.clientHeight : window.innerHeight; o(s(R.y, i)), y.copy(w), x.x += a(R.x, t) + s(R.y, i), p.usingGyro = !1 } function h(e) { p.usingGyro = !!AVR.OS.isMobile(), _ = !1 } function v(e) { p.deviceOrientation = e, void 0 === p.beginAlpha && (p.beginAlpha = p.deviceOrientation.alpha) } function f(e) { p.screenOrientation = window.orientation || 0 } this.domElement = void 0 !== t ? t : document, this.object = e, this.object.rotation.reorder("YXZ"), this.enable = !0, this.target = new THREE.Vector3, this.minPolarAngle = 0, this.maxPolarAngle = Math.PI, this.minAzimuthAngle = -(1 / 0), this.maxAzimuthAngle = 1 / 0, this.enableDamping = !1, this.dampingFactor = .05, this.rotateSpeed = .25, this.autoRotate = !1, this.autoRotateSpeed = 1, this.deviceOrientation = {}, this.screenOrientation = 0; var p = this; p.defaultDirectionOfRotation = !0, p.gyroEnable = !1, p.usingGyro = !!AVR.OS.isMobile(), p._defaultTargetY = p.target.y, p._defaultCameraFov = p.object.fov, p._defaultCameraY = p.object.position.y; var g = { type: "change" }, E = 1e-6, T = new THREE.Spherical, b = new THREE.Spherical, y = new THREE.Vector2, w = new THREE.Vector2, R = new THREE.Vector2, x = new THREE.Vector3(0, 0, 0), A = 0, H = 0, S = 0, C = 0, L = 0; this.target0 = this.target.clone(), this.position0 = this.object.position.clone(), this.rotation0 = this.object.rotation.clone(), this.zoom0 = this.object.zoom, this.getPolarAngle = function () { return T.phi }, this.getAzimuthalAngle = function () { return T.theta }, this.saveState = function () { p.target0.copy(p.target), p.position0.copy(p.object.position), p.rotation0.copy(p.object.rotation), p.zoom0 = p.object.zoom }, this.reset = function (e) { this.resetVar(), p.dispatchEvent(g), e && e.target0 ? p.target.copy(e.target0) : p.target.copy(p.target0), e && e.position0 ? p.object.position.copy(e.position0) : p.object.position.copy(p.position0), e && e.rotation0 ? p.object.rotation.copy(e.rotation0) : p.object.rotation.copy(p.rotation0), e && e.zoom0 ? p.zoom = zoom0 : p.zoom0 }, this.resetVar = function () { S = 0, C = 0, L = 0, A = 0, H = 0 }; var V = function () { var e = new THREE.Vector3(0, 0, 1), t = new THREE.Euler, i = new THREE.Quaternion, r = new THREE.Quaternion((-Math.sqrt(.5)), 0, 0, Math.sqrt(.5)); return function (o, n, a, s, c) { t.set(a, n, -s, "YXZ"), o.setFromEuler(t), o.multiply(r), o.multiply(i.setFromAxisAngle(e, -c)) } }(); this.update = function () {
-                var t = new THREE.Vector3, o = (new THREE.Quaternion).setFromUnitVectors(e.up, new THREE.Vector3(0, 1, 0)), a = o.clone().inverse(), s = new THREE.Vector3, c = new THREE.Quaternion; return function (e) {
-                    if (p.enable) {
-                        e = e || {}; var l = p.deviceOrientation.alpha ? THREE.Math.degToRad(void 0 === p.beginAlpha ? p.deviceOrientation.alpha : p.deviceOrientation.alpha - p.beginAlpha) : 0, d = p.deviceOrientation.beta ? THREE.Math.degToRad(p.deviceOrientation.beta) : 0, u = p.deviceOrientation.gamma ? THREE.Math.degToRad(p.deviceOrientation.gamma) : 0, m = p.screenOrientation ? THREE.Math.degToRad(p.screenOrientation) : 0; p.gyroEnable ? (S = l, C = d, L = u) : (l = S, d = C, u = L); var h = (new THREE.Quaternion).copy(p.object.quaternion); V(h, l, d, u, m); var v = n(h.x, h.y, h.z, h.w); e.init || r(A - v.z),
-                            H = v.y, A = v.z; var f = p.object.position; return t.copy(f).sub(p.target), t.applyQuaternion(o), T.setFromVector3(t), p.autoRotate && r(i()), T.theta += b.theta, T.phi += b.phi, T.theta = Math.max(p.minAzimuthAngle, Math.min(p.maxAzimuthAngle, T.theta)), T.phi = Math.max(p.minPolarAngle, Math.min(p.maxPolarAngle, T.phi)), T.makeSafe(), t.setFromSpherical(T), t.applyQuaternion(a), f.copy(p.target).add(t), p.deviceOrientation && p.gyroEnable ? V(p.object.quaternion, l + Math.PI + x.x, d + x.y, u + x.z, m) : p.object.lookAt(p.target), p.enableDamping && !p.gyroEnable ? (b.theta *= 1 - p.dampingFactor, b.phi *= 1 - p.dampingFactor) : b.set(0, 0, 0), (s.distanceToSquared(p.object.position) > E || 8 * (1 - c.dot(p.object.quaternion)) > E) && (p.dispatchEvent(g), s.copy(p.object.position), c.copy(p.object.quaternion), !0)
-                    }
+/*
+ *Copyright © 2019 mxreality.js authors
+ *Website:www.mxreality.cn
+ *免费软件，请保留版权注释
+ */
+
+// fix:iphone11和部分华为设备播放黑屏问题
+(function (global, factory) {
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports)
+    : typeof define === 'function' && define.amd ? define(['exports'], factory)
+      : (factory(global))
+}(this, function (exports) {
+  var VR = function (scene, renderer, container, cameraPara, cameraPosition) {
+    this.scene = scene
+    this.renderer = renderer
+    this.container = container
+    AVR.initDomStyle(container)
+    AVR.setCameraPara(this, cameraPara, cameraPosition)
+    this.vrbox = {
+      'radius': 2,
+      'widthSegments': 180,
+      'heightSegments': 180,
+      'width': 2,
+      'height': 2,
+      'depth': 2
+    }
+    this.liveSettings = {
+      'forceUseHls': false,
+      'forceUseVndAppleMpegUrl': false,
+      'forceUseXmpegUrl': false,
+      'usePlugin': false,
+      'loadPlugin': function (video) {
+        console.log('load video', video)
+      }
+    }
+    this.hlsConfig = {
+      autoStartLoad: true
+    }
+    this.flvConfig = {
+      type: 'flv',
+      isLive: true
+    }
+    this.destoryed = false
+    this.video = null
+    this.audio = null
+    this.toolBar = null
+    this.clock = new THREE.Clock()
+    this.VRObject = new THREE.Object3D()
+    this.defaultAutoHideLeftTime = 3
+    this.defaultVoiceHideLeftTime = 2
+    this.defaultVolume = 0.3
+    this.sliceSegment = 0
+    this._controlTarget = new THREE.Vector3(0, 0, 0.0001)
+    this._cubeCameraTimes = 0.96
+    this.resType = {
+      'video': 'video',
+      'box': 'box',
+      'slice': 'slice',
+      'sliceVideo': 'sliceVideo',
+      'flvVideo': 'flvVideo'
+    }
+    this.videoPlayHook = function () {
+      console.log('video play')
+    }
+    this.videoPauseHook = function () {
+      console.log('video pause')
+    }
+    this.asteroidConfig = {
+      enable: false,
+      asteroidFPS: 10,
+      asteroidFov: 135,
+      asteroidForwardTime: 2600,
+      asteroidWaitTime: 2000,
+      asteroidDepressionRate: 0.5,
+      asteroidTop: 1,
+      cubeResolution: 2048,
+      rotationAngleOfZ: 0
+    }
+    this.VRhint = '请取消屏幕翻转锁定后装入VR盒子中'
+    this.camera = new THREE.PerspectiveCamera(this.cameraPara.fov, this.cameraPara.aspect, this.cameraPara.near, this.cameraPara.far)
+    this.camera.lookAt(this._controlTarget)
+    this.cameraEvt = {
+      'controlGroup': function () { },
+      'updatePosition': function () { },
+      'hover': function () { },
+      'leave': function () { }
+    }
+    this._takeScreenShot = false
+    this.timerList = {}
+    this.camera.position.set(this.cameraPosition.x, this.cameraPosition.y, this.cameraPosition.z)
+    this.loadProgressManager = new THREE.LoadingManager(function (xhr) {
+      console.log('loaded')
+    }, function (item, loaded, total) {
+      console.log('item=', item, 'loaded', loaded, 'total=', total)
+    }, function (xhr, cl) {
+      console.log(xhr, cl)
+    })
+    this.scene.add(this.camera)
+    this.scene.add(this.VRObject)
+    // this.renderer.setPixelRatio( window.devicePixelRatio );
+    this.effect = AVR.stereoEffect(this.renderer)
+    AVR.bindOrientationEvent(this, this._controlTarget)
+  }
+  VR.prototype.destory = function () {
+    if (that.video) {
+      that.video.pause()
+      that.video = null
+    }
+    if (that.audio) {
+      that.audio.pause()
+      that.audio = null
+    }
+    for (var timer in that.timerList) {
+      clearInterval(that.timerList[timer])
+    }
+    that.destoryed = true
+  }
+  VR.prototype.init = function (extendsAnimationFrame) {
+    var that = this
+    var startPos = new THREE.Vector2()
+    var curPos = new THREE.Vector2()
+    that.toolBar = AVR.toolBar(that.container)
+    var toolBar = that.toolBar
+    var spots = {},
+      touches, timer, _s = 0
+
+    toolBar.defaultHeight = toolBar.toolbar.clientHeight
+    toolBar.defaultMaxHeight = toolBar.defaultHeight * 5
+    toolBar.isMouseDown = false
+    that.container.addEventListener('click', function () {
+      that.autoHideLeftTime = that.defaultAutoHideLeftTime
+      toolBar.toolbar.style.display = 'block'
+    })
+    toolBar.gyroBtn.addEventListener('click', function () {
+      that.gyroBtnClick()
+    }, false)
+    toolBar.vrBtn.addEventListener('click', function () {
+      that.vrBtnClick()
+    }, false)
+    toolBar.moreBtn.addEventListener('click', function () {
+      that.moreBtnClick()
+    }, false)
+    that.container.addEventListener('touchstart', function (e) {
+      that.touchStart(e)
+    }, false)
+    that.container.addEventListener('touchmove', function (e) {
+      that.touchMove(e)
+    }, false)
+    that.container.addEventListener('touchend', function (e) {
+      that.touchEnd(e)
+    }, false)
+    toolBar.gyroResetBtn.addEventListener('click', ongyroreset, false)
+    toolBar.toolbar.addEventListener('mousedown', onmousedown, false)
+    toolBar.toolbar.addEventListener('touchstart', onmousedown, false)
+    toolBar.toolbar.addEventListener('mousemove', onmousemove, false)
+    toolBar.toolbar.addEventListener('touchmove', onmousemove, false)
+    toolBar.toolbar.addEventListener('mouseup', onmouseup, false)
+    toolBar.toolbar.addEventListener('touchend', onmouseup, false)
+    toolBar.toolbar.addEventListener('mouseout', function (e) {
+      that.autoHideLeftTime = that.defaultAutoHideLeftTime
+      toolBar.isActive = false
+    }, false)
+    that.renderer.domElement.addEventListener('wheel', function (e) {
+      var delta = e.deltaY > 0 ? 15 : -15
+      if (that.camera.fov + delta * 0.05 >= 10 && that.camera.fov + delta * 0.05 <= 120) {
+        fovChange(delta)
+      }
+    }, false)
+
+    toolBar.moreList.addEventListener('mousemove', slide, false)
+    toolBar.moreList.addEventListener('touchmove', slide, false)
+
+    that.moreBtnClick = function (e) {
+      if (toolBar.toolbar.clientHeight > toolBar.defaultHeight) {
+        slideBar(-10)
+      } else {
+        slideBar(6)
+      }
+    }
+    that.vrBtnClick = function (e) {
+      var vrBtn = that.toolBar.vrBtn
+      if (AVR.isMobileDevice()) {
+        if (AVR.OS.isWeixin() && !AVR.OS.isiOS()) {
+          if (that.video.getAttribute('x5-video-orientation') == 'landscape') {
+            that.video.setAttribute('x5-video-orientation', 'portraint')
+            btnInactive(vrBtn)
+          } else {
+            that.video.setAttribute('x5-video-orientation', 'landscape')
+            btnActive(vrBtn)
+          }
+        } else {
+          if (!AVR.isCrossScreen()) {
+            btnInactive(vrBtn)
+            AVR.msgBox(that.VRhint, 5, that.container)
+          } else {
+            btnActive(vrBtn)
+            AVR.fullscreen(that.container)
+          }
+        }
+      } else {
+        if (!vrBtn.getAttribute('fullscreen')) {
+          btnActive(vrBtn)
+          vrBtn.setAttribute('fullscreen', 'true')
+        } else {
+          btnInactive(vrBtn)
+          vrBtn.removeAttribute('fullscreen')
+        }
+        AVR.fullscreen(that.container)
+      }
+    }
+    that.gyroBtnClick = function (e) {
+      var gyroBtn = that.toolBar.gyroBtn
+      if (gyroBtn.getAttribute('active') == 'active') {
+        that.controls.gyroFreeze()
+        btnInactive(gyroBtn)
+        btnInactive(toolBar.circle1)
+        btnInactive(toolBar.circle2)
+        gyroBtn.removeAttribute('active')
+      } else {
+        that.controls.gyroUnfreeze()
+        gyroBtn.setAttribute('active', 'active')
+        btnActive(gyroBtn)
+        btnActive(toolBar.circle1)
+        btnActive(toolBar.circle2)
+      }
+    }
+
+    function ongyroreset () {
+      that.controls && (that.controls.reset())
+    }
+    that.touchStart = function (e) {
+      if (e.targetTouches) {
+        [].forEach.call(e.targetTouches, function (touch) {
+          if (spots[touch.identifier]) {
+            return
+          }
+
+          spots[touch.identifier] = new THREE.Vector2(0, 0)
+        })
+        clearInterval(that.timerList.renderTouchersRimer)
+        that.timerList.renderTouchersRimer = setInterval(function () {
+          renderTouches(touches)
+        }, 1)
+      }
+    }
+
+    function onmousedown (e) {
+      toolBar.isMouseDown = true
+      var x = e.clientX || e.changedTouches[0].clientX
+      var y = e.clientY || e.changedTouches[0].clientY
+      startPos.set(x, y)
+      curPos.set(x, y)
+      that.autoHideLeftTime = that.defaultAutoHideLeftTime
+      toolBar.isActive = true
+    }
+
+    that.touchEnd = function (e) {
+      if (e.targetTouches) {
+        [].forEach.call(e.changedTouches, function (touch) {
+          var spot = spots[touch.identifier]
+          if (spot) {
+            delete spots[touch.identifier]
+          }
+        })
+        if (e.targetTouches.length === 0) {
+          _s = 0
+          that.controls.enable = true
+          clearInterval(timer)
+        }
+      }
+    }
+
+    function onmouseup (e) {
+      toolBar.isMouseDown = false
+    }
+    that.touchMove = function (e) {
+      touches = e.touches
+    }
+
+    function onmousemove (e) {
+      e.preventDefault()
+      that.autoHideLeftTime = that.defaultAutoHideLeftTime
+      that.toolBar.isActive = true
+      if (toolBar.isMouseDown) {
+        var x = e.clientX || e.changedTouches[0].clientX
+        var y = e.clientY || e.changedTouches[0].clientY
+        var offsetY = curPos.y - y
+        if (offsetY >= 5) {
+          slideBar(6)
+        }
+        if (offsetY <= -5) {
+          slideBar(-10)
+        }
+        curPos.set(x, y)
+      }
+    }
+
+    function renderTouches (touches) {
+      void 0 === that.controls.defaultDampingFactor && (that.controls.defaultDampingFactor = that.controls.dampingFactor)
+      void 0 === that.controls.object.defaultFov && (that.controls.object.defaultFov = that.controls.object.fov)
+      if (!touches) {
+        return
+      };
+      var num = 0,
+        ids = [];
+      [].forEach.call(touches, function (touch) {
+        var spot = spots[touch.identifier]
+        if (spot) {
+          spot.y = touch.pageY
+          spot.x = touch.pageX
+          ids.push(touch.identifier)
+        }
+        num++
+        if (num >= 2) {
+          var pos0 = spots[ids[0]]
+          var pos1 = spots[ids[1]]
+          var s = Math.sqrt(Math.pow(pos0.x - pos1.x, 2) + Math.pow(pos0.y - pos1.y, 2))
+          var s1 = (s - _s) / 4
+          if (that.controls.object.fov - s1 < 140 && that.controls.object.fov - s1 > 10 && _s) {
+            that.controls.enable = false
+            that.controls.object.fov -= s1
+            that.controls.dampingFactor = that.controls.defaultDampingFactor * that.controls.object.defaultFov / that.controls.object.fov
+          }
+          _s = s
+          num = 0
+        }
+      })
+    }
+
+    function slideBar (h) {
+      clearInterval(that.timerList.slideBarAniateTimer)
+      that.timerList.slideBarAniateTimer = animateTimer = setInterval(function () {
+        var step = (toolBar.toolbar.clientHeight + h)
+        if (step >= toolBar.defaultHeight && step <= toolBar.defaultMaxHeight) {
+          toolBar.toolbar.style.height = step + 'px'
+          toolBar.isActive = true
+        } else {
+          clearInterval(animateTimer)
+          if (h > 0) {
+            toolBar.isActive = true
+            toolBar.moreBtn.style.transform = 'rotate(-180deg)'
+            toolBar.moreBtn.style.webkitTransform = 'rotate(-180deg)'
+            toolBar.toolbar.style.height = toolBar.defaultMaxHeight + 'px'
+            toolBar.about.style.display = 'block'
+          } else {
+            toolBar.isActive = false
+            toolBar.moreBtn.style.transform = 'rotate(0deg)'
+            toolBar.moreBtn.style.webkitTransform = 'rotate(0deg)'
+            toolBar.toolbar.style.height = toolBar.defaultHeight + 'px'
+            toolBar.about.style.display = 'none'
+          }
+        }
+        that.autoHideLeftTime = that.defaultAutoHideLeftTime
+      }, 1)
+    }
+
+    function slide (e) {
+      that.autoHideLeftTime = that.defaultAutoHideLeftTime
+      toolBar.isActive = true
+      var x = e.clientX || e.changedTouches[0].clientX
+      var y = e.clientY || e.changedTouches[0].clientY
+      if (toolBar.isMouseDown) {
+        toolBar.moreList.scrollLeft += (curPos.x - x) * 2.5
+      }
+      curPos.set(x, y)
+    }
+
+    function fovChange (delta) {
+      that.camera.fov += delta * 0.05
+      that.camera.updateProjectionMatrix()
+    }
+    that.windowResize = function () {
+      if (!AVR.isFullscreen()) {
+        if (AVR.OS.isWeixin() && !AVR.OS.isiOS()) {
+          if (that.video.getAttribute('x5-video-orientation') == 'landscape') {
+            btnActive(that.toolBar.vrBtn)
+          } else {
+            btnInactive(that.toolBar.vrBtn)
+          }
+          if (AVR.isCrossScreen()) {
+            btnActive(that.toolBar.vrBtn)
+          } else {
+            btnInactive(that.toolBar.vrBtn)
+          }
+        } else {
+          if (AVR.isCrossScreen()) {
+            btnActive(that.toolBar.vrBtn)
+          } else {
+            btnInactive(that.toolBar.vrBtn)
+          }
+          btnInactive(that.toolBar.vrBtn)
+        }
+      } else {
+        if (AVR.isMobileDevice()) {
+          if (AVR.isCrossScreen()) {
+            btnActive(that.toolBar.vrBtn)
+          } else {
+            btnInactive(that.toolBar.vrBtn)
+          }
+        } else {
+          btnActive(that.toolBar.vrBtn)
+        }
+      }
+    }
+    window.addEventListener('resize', function () {
+      bindVolumeEvent()
+    }, false)
+
+    function btnActive (obj) {
+      obj.style.borderColor = 'green'
+      obj.style.color = 'green'
+
+      if (that.cameraEvt.controlGroup.length) {
+        var pointObj = that.cameraEvt.controlGroup.getObjectByName('__focus')
+        pointObj.visible = true
+      }
+    }
+
+    function btnInactive (obj) {
+      obj.style.borderColor = 'white'
+      obj.style.color = 'white'
+
+      if (that.cameraEvt.controlGroup.length) {
+        var pointObj = that.cameraEvt.controlGroup.getObjectByName('__focus')
+        pointObj.visible = false
+      }
+    }
+
+    that._play = function () {
+      toolBar.btn.style.border = 'none'
+      toolBar.btn.style.fontWeight = 800
+      toolBar.btn.innerHTML = '<b>||</b>'
+    }
+
+    that._pause = function () {
+      toolBar.btn.innerText = ''
+      toolBar.btn.style.borderTop = '0.6rem solid transparent'
+      toolBar.btn.style.borderLeft = '1rem solid white'
+      toolBar.btn.style.borderBottom = '0.6rem solid transparent'
+    }
+
+    function bindVolumeEvent () {
+      var Audio = that.video || that.audio
+      if (Audio) {
+        var ract = AVR.getBoundingClientRect(that.container)
+        toolBar.voice_bar.style.display = 'block'
+        var voice_bar = toolBar.voice_bar
+        var voice_slide_bar = voice_bar.firstChild
+        var voice_cur_slide_bar = voice_slide_bar.firstChild
+        var voice_btn = voice_cur_slide_bar.firstChild
+        var mouseDown = false,
+          touchStartY = 0,
+          touchCurrentY = 0,
+          tempY
+        Audio.volume = that.defaultVolume
+        var voice_bar_height = toolBar.voice_bar.clientHeight
+        var offset_h = (that.container.clientHeight - voice_bar_height) / 2
+        var h_top = voice_bar_height + offset_h
+        voice_cur_slide_bar.style.height = (Audio.volume * voice_bar_height) + 'px'
+        voice_bar.addEventListener('mousedown', function (e) {
+          voice_bar.style.opacity = 1
+        }, false)
+        voice_slide_bar.addEventListener('click', function (e) {
+          var y = (e.clientY || e.changedTouches[0].clientY) - ract.top
+          that.voiceHideLeftTime = that.defaultVoiceHideLeftTime
+          var cur_h = h_top - y
+          if (cur_h / voice_bar_height <= 1) {
+            voice_cur_slide_bar.style.height = cur_h + 'px'
+            Audio.volume = cur_h / voice_bar_height
+          }
+        }, false)
+        voice_bar.addEventListener('mouseout', function (e) {
+          mouseDown = false
+        }, false)
+        voice_bar.addEventListener('mousedown', function (e) {
+          mouseDown = true
+        }, false)
+        voice_bar.addEventListener('mouseup', function (e) {
+          mouseDown = false
+        }, false)
+        voice_bar.addEventListener('mousemove', function (e) {
+          var y = (e.clientY || e.changedTouches[0].clientY) - ract.top
+          that.voiceHideLeftTime = that.defaultVoiceHideLeftTime
+          if (mouseDown) {
+            var cur_h = h_top - y
+            voice_cur_slide_bar.style.height = cur_h + 'px'
+            if (cur_h / voice_bar_height <= 1) { Audio.volume = cur_h / voice_bar_height }
+          }
+        }, false)
+        voice_bar.addEventListener('touchstart', function (e) {
+          e.preventDefault()
+          that.voiceHideLeftTime = that.defaultVoiceHideLeftTime
+          tempY = voice_cur_slide_bar.clientHeight
+          touchStartY = e.touches[0].pageY
+          voice_bar.style.opacity = 1
+        }, false)
+        voice_bar.addEventListener('touchmove', function (e) {
+          e.preventDefault()
+          that.voiceHideLeftTime = that.defaultVoiceHideLeftTime
+          touchCurrentY = e.touches[0].pageY
+          var next_h = tempY + (touchStartY - touchCurrentY)
+          if (next_h / voice_bar_height <= 1) {
+            voice_cur_slide_bar.style.height = next_h + 'px'
+            Audio.volume = next_h / voice_bar_height
+          }
+        }, false)
+        voice_bar.addEventListener('touchend', function (e) {
+          tempY = 0
+        }, false)
+        clearInterval(that.timerList.voiceBarActiveTimer)
+        that.timerList.voiceBarActiveTimer = setInterval(function () {
+          if (that.voiceHideLeftTime <= 0) {
+            voice_bar.style.opacity = 0
+          } else {
+            that.toolBar.isActive ? null : that.voiceHideLeftTime--
+          }
+        }, 1000)
+      }
+    }
+    that.bindVolumeBar = bindVolumeEvent
+
+    function render () {
+      if (that.destoryed) {
+        return
+      }
+      var width = that.container.offsetWidth
+      var height = that.container.offsetHeight
+      that.camera.aspect = width / height
+      if ((AVR.isMobileDevice() && AVR.isCrossScreen())) {
+        that.cameraEvt.updatePosition()
+        that.effect.setSize(width, height)
+        that.effect.render(that.scene, that.camera)
+      } else {
+        that.renderer.setSize(width, height)
+        that.renderer.setClearColor(new THREE.Color(0xffffff))
+        that.renderer.render(that.scene, that.camera)
+      }
+      if (that._takeScreenShot) {
+        that._takeScreenShot = false
+        var screenshot = that.renderer.domElement.toDataURL('image/jpeg')
+        that._takeScreenShotCallback(screenshot)
+      }
+      that.camera.updateProjectionMatrix()
+      if (that.controls) {
+        that.controls.update()
+      }
+      extendsAnimationFrame()
+    }
+
+    function animate () {
+      render()
+      requestAnimationFrame(animate)
+    }
+    animate()
+    // if you don't use an asteroid view,you need to initialize the controller after the asteroid view.
+    clearInterval(that.timerList.toolBarAutoHideTimer)
+    that.timerList.toolBarAutoHideTimer = setInterval(function () {
+      if (!toolBar.isActive) {
+        if (that.autoHideLeftTime < 0) {
+          toolBar.toolbar.style.display = 'none'
+          that.autoHideLeftTime = that.defaultAutoHideLeftTime
+          toolBar.isActive = false
+        } else {
+          that.autoHideLeftTime--
+        }
+      }
+      that.windowResize()
+    }, 1000)
+  }
+  VR.prototype.takeScreenShot = function (callback) {
+    this._takeScreenShot = true
+    this._takeScreenShotCallback = callback
+  }
+  VR.prototype.playPanorama = function (recUrl, resType) {
+    var ids = ['__mxrealitySkybox', '__mxrealitySlice', '__mxrealityDefault']
+    for (var i in ids) {
+      var obj = this.VRObject.getObjectByName(ids[i])
+      obj && (obj.visible = false)
+      this.cubeCameraSphere && (this.cubeCameraSphere.visible = false)
+    }
+    var that = this
+    var toolBar = that.toolBar
+    that._containerRadius = (that.resType.box == resType || that.resType.slice == resType) ? (that.vrbox.width / 2) : that.vrbox.radius
+
+    that.autoHideLeftTime = that.defaultAutoHideLeftTime
+    that.voiceHideLeftTime = that.defaultVoiceHideLeftTime
+
+    if (that.resType.box == resType) {
+      that.toolBar.timeInfo.style.display = 'none'
+      var textures = []
+      var materials = []
+
+      var imageObj = new Image()
+      imageObj.crossOrigin = 'Anonymous'
+      imageObj.src = recUrl
+      imageObj.onload = function () {
+        var canvas, context
+        var tileWidth = imageObj.height
+
+        for (var i = 0; i < 6; i++) {
+          textures[i] = new THREE.Texture()
+          canvas = document.createElement('canvas')
+          context = canvas.getContext('2d')
+          canvas.height = tileWidth
+          canvas.width = tileWidth
+          context.drawImage(imageObj, tileWidth * i, 0, tileWidth, tileWidth, 0, 0, tileWidth, tileWidth)
+          textures[i].image = canvas
+          textures[i].needsUpdate = true
+          materials.push(new THREE.MeshBasicMaterial({
+            map: textures[i]
+          }))
+        }
+        var Box = that.VRObject.getObjectByName('__mxrealitySkybox')
+        if (!Box) {
+          var Box = new THREE.Mesh(new THREE.CubeGeometry(that.vrbox.width, that.vrbox.height, that.vrbox.depth), new THREE.MultiMaterial(materials))
+          Box.applyMatrix(new THREE.Matrix4().makeScale(1, 1, -1))
+          Box.visible = true
+          Box.name = '__mxrealitySkybox'
+          Box.matrixAutoUpdate = false
+          Box.updateMatrix()
+          that.VRObject.add(Box)
+          toolBar.btn.addEventListener('click', function (e) {
+            that.controls.autoRotate ? that._pause() : that._play()
+            that.controls.autoRotate = !that.controls.autoRotate
+          })
+        } else {
+          Box.material = materials
+        }
+        that.loadProgressManager.onLoad()
+      }
+    } else if (that.resType.slice == resType) {
+      // cubeGeometry.scale(-1, 1, 1)
+      that.toolBar.timeInfo.style.display = 'none'
+      var textureLoader = new THREE.TextureLoader(that.loadProgressManager)
+      textureLoader.mapping = THREE.UVMapping
+      var materials = []
+      for (var i = 0; i < recUrl.length; i++) {
+        var texture = textureLoader.load(recUrl[i])
+        materials.push(new THREE.MeshBasicMaterial({
+          map: texture
+        }))
+      }
+
+      var cubeGeometry = new THREE.CubeGeometry(that.vrbox.width, that.vrbox.height, that.vrbox.depth, that.sliceSegment, that.sliceSegment, that.sliceSegment)
+      var faceId = 0
+      var uv = [new THREE.Vector2(0, 0), new THREE.Vector2(1, 0), new THREE.Vector2(1, 1), new THREE.Vector2(0, 1)]
+
+      for (var i = 0, l = cubeGeometry.faces.length; i < l; i += 2) {
+        cubeGeometry.faces[i].materialIndex = faceId
+        cubeGeometry.faces[i + 1].materialIndex = faceId
+        cubeGeometry.faceVertexUvs[0][i] = [uv[3], uv[0], uv[2]]
+        cubeGeometry.faceVertexUvs[0][i + 1] = [uv[0], uv[1], uv[2]]
+        faceId++
+      }
+      var obj = that.VRObject.getObjectByName('__mxrealitySlice')
+      if (obj) {
+        obj.material = materials
+        obj.geometry = cubeGeometry
+        obj.updateMatrix()
+      } else {
+        var cube = new THREE.Mesh(cubeGeometry, materials)
+        cube.applyMatrix(new THREE.Matrix4().makeScale(1, 1, -1))
+        cube.name = '__mxrealitySlice'
+        cube.visible = true
+        cube.matrixAutoUpdate = false
+        cube.updateMatrix()
+        that.VRObject.add(cube)
+        that.cubeCamera = new THREE.CubeCamera(that._containerRadius, that.cameraPara.far, that.asteroidConfig.cubeResolution)
+        var cubeCameraTexture = that.cubeCamera.renderTarget.texture
+        cubeCameraTexture.minFilter = THREE.LinearMipMapLinearFilter
+
+        that.VRObject.add(that.cubeCamera)
+        material = new THREE.MeshBasicMaterial({
+          envMap: that.cubeCamera.renderTarget.texture,
+          side: THREE.BackSide
+        })
+        that.cubeCameraSphere = new THREE.Mesh(new THREE.SphereGeometry(that._containerRadius * that._cubeCameraTimes, 180, 180), material)
+        that.cubeCameraSphere.position.set(0, 0, 0)
+        that.cubeCameraSphere.name = '__mxrealitySlice'
+        that.cubeCameraSphere.visible = true
+        that.cubeCameraSphere.matrixAutoUpdate = false
+        that.cubeCameraSphere.updateMatrix()
+        that.VRObject.add(that.cubeCameraSphere)
+
+        toolBar.btn.addEventListener('click', function (e) {
+          that.controls.autoRotate ? that._pause() : that._play()
+          that.controls.autoRotate = !that.controls.autoRotate
+        })
+      }
+      if (that.asteroidConfig.enable) {
+        that.cubeCameraSphere.visible = true
+        that.asteroidForward = function (callback) {
+          that.cubeCamera.update(that.renderer, that.scene)
+          asteroidForward(callback)
+        }
+      } else {
+        that.cubeCameraSphere.visible = false
+      }
+    } else {
+      var videoType = [that.resType.video, that.resType.sliceVideo, that.resType.flvVideo]
+      if (videoType.indexOf(resType) >= 0) {
+        if (!that.video) {
+          var video = that.video = AVR.createTag('video', {
+            'webkit-playsinline': true,
+            'playsinline': true,
+            'preload': 'auto',
+            'x-webkit-airplay': 'allow',
+            // 'x5-playsinline': true,
+            'x5-video-player-type': 'h5',
+            'x5-video-player-fullscreen': true,
+            'x5-video-orientation': 'portrait',
+            'style': 'object-fit: fill',
+            'loop': 'loop'
+          }, {
+            'allowsInlineMediaPlayback': true,
+            'crossOrigin': 'Anonymous'
+          })
+        } else {
+          var video = that.video
+          for (var node = 0; node < video.childNodes.length; node++) {
+            video.removeChild(video.childNodes[node])
+          }
+        }
+        if (that.resType.sliceVideo == resType) {
+          function useHls () {
+            that.hlsPlayer = new Hls(that.hlsConfig)
+            that.hlsPlayer.loadSource(recUrl)
+            that.hlsPlayer.attachMedia(video)
+            that.hlsPlayer.on(Hls.Events.MANIFEST_PARSED, function () {
+              video.play()
+            })
+          }
+
+          function useXMpegUrl () {
+            var source = AVR.createTag('source', {
+              src: recUrl,
+              type: 'application/x-mpegURL'
+            }, null)
+            video.appendChild(source)
+          }
+
+          function useVndAppleMpegUrl () {
+            video.src = recUrl
+            video.addEventListener('loadedmetadata', function () {
+              video.play()
+            })
+          }
+          if (that.liveSettings.usePlugin) {
+            that.liveSettings.loadPlugin(video)
+          } else if (that.liveSettings.forceUseHls) {
+            useHls()
+            console.info('force use hls')
+          } else if (that.liveSettings.forceUseVndAppleMpegUrl) {
+            useVndAppleMpegUrl()
+            console.info('force use application/vnd.apple.mpegurl')
+          } else if (that.liveSettings.forceUseXmpegUrl) {
+            useXMpegUrl()
+            console.info('force use application/x-mpegURL')
+          } else if (Hls.isSupported()) {
+            useHls()
+          } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            useVndAppleMpegUrl()
+          } else if (video.canPlayType('application/x-mpegURL')) {
+            useXMpegUrl()
+          } else {
+            console.error('The browser does not support the current live stream,' + recUrl)
+          }
+        } else if (that.resType.flvVideo == resType) {
+          if (!flvjs.isSupported()) {
+            console.error('Your browser does not support flvjs')
+            return
+          }
+          that.flvConfig.url = recUrl
+          var flvPlayer = flvjs.createPlayer(that.flvConfig)
+          flvPlayer.attachMediaElement(video)
+          flvPlayer.load()
+          flvPlayer.play()
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+          video.src = recUrl
+        } else {
+          video.src = recUrl
+        }
+        video.removeEventListener('canplaythrough', canplayThrough)
+        toolBar.progressBar.removeEventListener('click', changeProgress)
+        toolBar.btn.removeEventListener('click', btnPlay)
+        video.addEventListener('canplaythrough', canplayThrough, false)
+        toolBar.progressBar.addEventListener('click', changeProgress, false)
+        toolBar.btn.addEventListener('click', btnPlay, false)
+        video.load()
+
+        function btnPlay (e) {
+          if (video.paused) {
+            that._play()
+            video.play()
+            that.videoPlayHook()
+          } else {
+            that._pause()
+            video.pause()
+            that.videoPauseHook()
+          }
+        }
+
+        function changeProgress (e) {
+          rect = AVR.getBoundingClientRect(that.container)
+          var x = (e.clientX || e.changedTouches[0].clientX) - rect.left
+          video.currentTime = video.duration * (x / this.clientWidth)
+        }
+        that.video.buffTimer = null
+
+        function canplayThrough (e) {
+          if (!that.video.buffTimer) {
+            clearInterval(that.timerList.videoBuffTimer)
+            that.timerList.videoBuffTimer = that.video.buffTimer = setInterval(function (e) {
+              var allBuffered = 0
+              if (video.buffered.length != 0) {
+                allBuffered += video.buffered.end(0)
+              }
+              if (allBuffered >= video.duration) {
+                clearInterval(that.video.buffTimer)
+              }
+              toolBar.loadedProgress.style.width = (allBuffered / video.duration) * 100 + '%'
+            }, 500)
+          }
+        }
+        var texture = new THREE.VideoTexture(video)
+        texture.generateMipmaps = false
+        texture.minFilter = THREE.LinearFilter
+        texture.magFilter = THREE.LinearFilter
+        // texture.format = THREE.RGBFormat;
+        texture.format = THREE.RGBAFormat
+        buildTexture(texture)
+
+        clearInterval(that.timerList.videoProgressTimer)
+        that.timerList.videoProgressTimer = that.video.progressTimer = setInterval(function (e) {
+          toolBar.playProgress.style.width = (video.currentTime / video.duration) * 100 + '%'
+          toolBar.curTime.innerText = AVR.formatSeconds(video.currentTime)
+          toolBar.totalTime.innerText = AVR.formatSeconds(video.duration)
+          if (that.autoHideLeftTime < 0 && !video.paused) {
+            toolBar.toolbar.style.display = 'none'
+          } else {
+            that.autoHideLeftTime--
+          }
+        }, 1000)
+        that.loadProgressManager.onLoad()
+      } else {
+        new THREE.TextureLoader(that.loadProgressManager).load(recUrl, function (texture) {
+          buildTexture(texture, true)
+        })
+      }
+
+      function buildTexture (texture, isImg) {
+        isImg = isImg || false
+        material = new THREE.MeshBasicMaterial({
+          overdraw: true,
+          map: texture
+        })
+        var obj = that.VRObject.getObjectByName('__mxrealityDefault')
+        if (obj) {
+          obj.material = material
+          obj.visible = true
+        } else {
+          var phiStart = -Math.PI / 2
+          var geometry = new THREE.SphereBufferGeometry(that.vrbox.radius, that.vrbox.widthSegments, that.vrbox.heightSegments, phiStart)
+          geometry.scale(-1, 1, 1) // x取反（面朝里）
+          mesh = new THREE.Mesh(geometry, material)
+          mesh.visible = true
+          mesh.name = '__mxrealityDefault'
+          if (isImg) {
+            mesh.matrixAutoUpdate = false
+            mesh.updateMatrix()
+            that.toolBar.timeInfo.style.display = 'none'
+          }
+          that.VRObject.add(mesh)
+        }
+        if (that.asteroidConfig.enable) {
+          that.asteroidForward = function (callback) {
+            asteroidForward(callback)
+          }
+        }
+      }
+    }
+
+    function asteroidForward (callback) {
+      that.controls && (that.controls.reset(), that.controls.enable = false)
+      var config = that.asteroidConfig
+      var defaultFov = that.camera.fov
+      var s = that._containerRadius * (that._cubeCameraTimes * 0.9)
+      that.camera.position.y = s * config.asteroidTop
+      that.camera.rotation.x = THREE.Math.degToRad(-90)
+
+      that.camera.fov = config.asteroidFov
+
+      var t = config.asteroidForwardTime * config.asteroidFPS / 300
+      var v = s / t
+      var sFov = that.camera.fov - defaultFov
+      var vFov = sFov / t
+      var vRo = Math.PI / 2 / t
+      var yDown = false,
+        fovDone = false
+      var tmpTarget = new THREE.Vector3(that._controlTarget.x, that._controlTarget.y, that._controlTarget.z)
+
+      setTimeout(function () {
+        that.timerList.asteroidForwardTimer = asteroidForwardTimer = setInterval(function () {
+          if (config.asteroidTop * that.camera.position.y - v >= 0) {
+            that.camera.position.y -= (v * config.asteroidTop)
+            that.camera.lookAt(tmpTarget)
+            tmpTarget.z *= 1.25
+          } else {
+            yDown = true
+          }
+          if (that.camera.fov - vFov >= defaultFov) {
+            that.camera.fov -= vFov
+          } else {
+            fovDone = true
+          }
+          if (yDown && fovDone) {
+            clearInterval(asteroidForwardTimer)
+            that.controls.enable = true
+            that.camera.position.y = 0
+            that.camera.fov = defaultFov
+
+            if (void 0 !== callback) {
+              callback()
+            }
+          }
+        }, config.asteroidFPS)
+      }, config.asteroidWaitTime)
+    }
+  }
+
+  VR.prototype.sphere2BoxPano = function (img, w, h, callback) {
+    var that = this
+    var fases = {
+      'x': 'x',
+      'nx': 'nx',
+      'ny': 'ny',
+      'y': 'y',
+      'z': 'z',
+      'nz': 'nz'
+    }
+    var canvasArr = [],
+      finishNum = 0
+    var i = 0
+    var image = new Image()
+    image.crossOrigin = 'Anonymous'
+    image.src = img
+    image.onload = function () {
+      for (var id in fases) {
+        var canvas = document.createElement('canvas')
+        canvas.width = w
+        canvas.height = h
+        canvas.id = 'face_' + id
+        canvasArr[i] = canvas
+        var gl = canvas.getContext('webgl', {
+          preserveDrawingBuffer: true
+        }) // 获取canvas上下文
+        var shaderPorgram = initShaders(gl, id) // 初始化着色器程序
+
+        var num = initVertexBuffers(gl, shaderPorgram)
+        var PI = gl.getUniformLocation(shaderPorgram, 'PI')
+        gl.uniform1f(PI, Math.PI)
+
+        gl.clearColor(0.0, 0.0, 0.0, 1.0)
+
+        // Set texture
+        if (!initTextures(gl, shaderPorgram, num, image)) {
+          console.log('Failed to intialize the texture.')
+          // return;
+        }
+        i++
+      }
+    }
+
+    // 初始化纹理
+    function initTextures (gl, shaderPorgram, n, image) {
+      var texture = gl.createTexture() // 创建纹理对象
+
+      if (!texture) {
+        console.log('Failed to create the texture object!')
+        return false
+      }
+
+      var u_Sampler = gl.getUniformLocation(shaderPorgram, 'u_Sampler')
+
+      loadTextures(gl, n, texture, u_Sampler, image)
+      return true
+    }
+
+    // 加载纹理图片
+    function loadTextures (gl, n, texture, u_Sampler, image) {
+      if (that.asteroidConfig.enable) {
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, -1) // 对纹理图像进行y轴反转
+      }
+      gl.activeTexture(gl.TEXTURE0) // 激活纹理单元
+      gl.bindTexture(gl.TEXTURE_2D, texture) // 绑定纹理对象
+
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR) // 配置纹理对象的参数
+
+      /**
+           * RENDER WARNING: texture bound to texture unit 0 is not renderable. It maybe non-power-of-2 and have incompatible texture filtering.
+           * 大致意思是纹理没有渲染成功，因为所使用的图片的分辨率不是2的幂数，2的幂数是指2*2、4*4、8*8、16*16...256*256...；
+           * 需要设置图形纹理参数时设置水平垂直拉伸。
+           */
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image) // 将纹理图像分配给纹理对象
+
+      gl.uniform1i(u_Sampler, 0) // 将0号纹理传给着色器中的取样器变量
+
+      gl.clear(gl.COLOR_BUFFER_BIT) // Clear <canvas>
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, n) // Draw the rectangle
+      if (finishNum < 5) {
+        finishNum++
+      } else {
+        callback(getNewPano())
+      }
+      // gl.drawArrays(gl.TRIANGLE_STRIP, 1, n); // Draw the rectangle
+    }
+
+    // 初始化顶点位置
+    function initVertexBuffers (gl, shaderPorgram) {
+      // 顶点坐标和纹理坐标映射关系
+      var datas = new Float32Array([
+        // 顶点坐标、纹理坐标
+        -1.0, 1.0, 0.0, 1.0,
+        -1.0, -1.0, 0.0, 0.0,
+        1.0, 1.0, 1.0, 1.0,
+        1.0, -1.0, 1.0, 0.0
+      ])
+
+      var num = 4 // 顶点数目
+      var vertexBuffer = gl.createBuffer() // 创建缓冲区对象
+
+      if (!vertexBuffer) {
+        console.log('Failed to create the buffer object!')
+        return -1
+      }
+
+      // 将缓冲区对象绑定到目标并写入数据
+      gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer)
+      gl.bufferData(gl.ARRAY_BUFFER, datas, gl.STATIC_DRAW)
+
+      var size = datas.BYTES_PER_ELEMENT // 数组中的每个元素的大小（以字节为单位）
+
+      // 顶点着色器接受顶点坐标和纹理坐标映射关系
+      var a_Position = gl.getAttribLocation(shaderPorgram, 'a_Position')
+      gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, size * 4, 0)
+      gl.enableVertexAttribArray(a_Position)
+
+      var a_TexCoord = gl.getAttribLocation(shaderPorgram, 'a_TexCoord')
+      gl.vertexAttribPointer(a_TexCoord, 2, gl.FLOAT, false, size * 4, size * 2)
+      gl.enableVertexAttribArray(a_TexCoord)
+
+      return num
+    }
+    // 初始化着色器
+    function initShaders (gl, type) {
+      var shaderProgram
+      var fragmentShader = getShader(gl, type)
+      var vertexShader = getShader(gl)
+      // 创建着色器
+      shaderProgram = gl.createProgram()
+      gl.attachShader(shaderProgram, vertexShader)
+      gl.attachShader(shaderProgram, fragmentShader)
+      // 链接着色器程序
+      gl.linkProgram(shaderProgram)
+      // 检查着色器是否成功链接
+      if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+        return null
+      }
+      // 链接成功后激活渲染器程序
+      gl.useProgram(shaderProgram)
+
+      // 启用顶点缓冲区数组
+      gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute)
+      shaderProgram.vertexColorAttribute = gl.getAttribLocation(shaderProgram, 'aVertexColor')
+      // gl.enableVertexAttribArray(shaderProgram.vertexColorAttribute);
+      shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, 'uPMatrix')
+      shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, 'uMVMatrix')
+      return shaderProgram
+    }
+
+    // 根据id获得编译好的着色器
+    function getShader (gl, id) {
+      var shaderScript
+      var shader
+
+      // 创建顶点着色器或片段着色器
+      if (id) {
+        shaderScript = getShaderFragment(id)
+        if (!shaderScript) {
+          return null
+        }
+        shader = gl.createShader(gl.FRAGMENT_SHADER)
+      } else {
+        shaderScript = getShaderVertex()
+        shader = gl.createShader(gl.VERTEX_SHADER)
+      }
+      gl.shaderSource(shader, shaderScript)
+      // 编译着色器代码
+      gl.compileShader(shader)
+      // 检查是否编译成功
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        console.log(gl.getShaderInfoLog(shader)) // 打印编译失败信息
+        return null
+      }
+      // 成功编译返回编译好的着色器
+      return shader
+    }
+
+    // <!-- 片段着色器程序 -->
+    function getShaderFragment (type) {
+      var code = ''
+      var variable = '\n\
+      precision mediump float;\n\
+      varying vec2 v_TexCoord;\n\
+      uniform sampler2D u_Sampler;\n\
+      uniform float PI;\n'
+
+      // 超出范围处理\
+      var checkRange = '\n\
+      if(abs(theta)>PI){\n\
+          if(theta>PI){\n\
+              theta -= 2.0*PI;\n\
+          }else{\n\
+              theta += 2.0*PI;\n\
+          }\n\
+      }\n\
+      if(abs(phi)>PI/2.0){\n\
+          if(phi>PI/2.0){\n\
+              phi -= PI;\n\
+          }else{\
+              phi += PI;\n\
+          }\n\
+      }\n\
+      float x = theta/PI*0.5 + 0.5;\n\
+      float y = phi/PI*2.0*0.5 + 0.5;\n\
+      gl_FragColor = texture2D(u_Sampler, vec2(x,y));\n'
+      if (type == 'z') {
+        // z轴正平面-z\
+        code = variable + '\n\
+    void main() {\n\
+      float r = 0.5;\n\
+      vec2 orig = vec2(0.5-v_TexCoord.x,v_TexCoord.y-0.5);\n\
+      float theta = atan(orig.x,r);\n\
+      float phi = atan(orig.y*cos(theta),r);' + checkRange + '\n\
+    }\n'
+      } else if (type == 'nz') {
+        // z轴负平面-nz\
+        code = variable + '\n\
+    void main() {\n\
+      float r = 0.5;\n\
+      vec2 orig = vec2(0.5-v_TexCoord.x,v_TexCoord.y-0.5);\n\
+      float theta = atan(orig.x,r);\n\
+      float phi = atan(orig.y*cos(theta),r);\n\
+          theta = theta+PI;\n' + checkRange + '\n\
+    }\n'
+      } else if (type == 'x') {
+        // x轴正平面-x\
+        code = variable + '\n\
+    void main() {\n\
+      float r = 0.5;\n\
+      vec2 orig = vec2(v_TexCoord.x-0.5,v_TexCoord.y-0.5);\n\
+      float theta = atan(r,orig.x);\n\
+      float phi = atan(orig.y*sin(theta),r);' + checkRange + '\n\
+    }\n'
+      } else if (type == 'nx') {
+        // x轴负平面-nx\
+        code = variable + '\n\
+    void main() {\n\
+      float r = 0.5;\n\
+      vec2 orig = vec2(v_TexCoord.x-0.5,v_TexCoord.y-0.5);\n\
+      float theta = atan(r,orig.x);\n\
+      float phi = atan(orig.y*sin(theta),r);\n\
+          theta = theta+PI;' + checkRange + '\n\
+    }\n'
+      } else if (type == 'y') {
+        // y轴正平面-y\
+        code = variable + '\n\
+    void main() {\n\
+      float r = 0.5;\n\
+      vec2 orig = vec2(0.5-v_TexCoord.x,0.5-v_TexCoord.y);\n\
+          float theta = atan(orig.x,orig.y);\n\
+          float phi = atan(r*sin(theta),orig.x);' + checkRange + '\n\
+    }\n'
+      } else if (type == 'ny') {
+        // y轴负平面-ny
+        code = variable + '\n\
+    void main() {\n\
+      float r = 0.5;\n\
+      vec2 orig = vec2(0.5-v_TexCoord.x,v_TexCoord.y-0.5);\n\
+      float theta = atan(orig.x,orig.y);\n\
+      float phi = atan(r*sin(theta),orig.x);\n\
+      phi = -phi;' + checkRange + '\n\
+    }\n'
+      } else {
+        console.error('shader fragment type error!')
+      }
+      return code
+    }
+
+    function getShaderVertex () {
+      var code = '\n\
+      attribute vec4 a_Position;\n\
+      attribute vec2 a_TexCoord;\n\
+      varying vec2 v_TexCoord;\n\
+      void main() {\n\
+          gl_Position= a_Position;\n\
+          v_TexCoord = a_TexCoord;\n\
+      }\n'
+      return code
+    }
+
+    function getNewPano () {
+      var c = document.createElement('canvas'),
+        ctx = c.getContext('2d')
+      c.width = w * 6
+      c.height = h
+
+      var tmp = document.createElement('canvas'),
+        tmpctx = tmp.getContext('2d')
+      tmp.width = w
+      tmp.height = h
+      var degree = 180 * Math.PI / 180
+      tmpctx.rotate(degree)
+      if (that.sliceSegment) {
+        var sliceArray = []
+        var canvasCell = document.createElement('canvas')
+        canvasCell.width = h / that.sliceSegment
+        canvasCell.height = h / that.sliceSegment
+        var canvasCtx = canvasCell.getContext('2d')
+        for (var idx in canvasArr) {
+          tmpctx.drawImage(canvasArr[idx], 0, 0, -w, -h)
+          for (var row = 0; row < that.sliceSegment; row++) {
+            for (var col = 0; col < that.sliceSegment; col++) {
+              canvasCtx.putImageData(tmpctx.getImageData(col * (h / that.sliceSegment), row * (h / that.sliceSegment), h * (col + 1) / that.sliceSegment, h * (row + 1) / that.sliceSegment), 0, 0)
+              sliceArray.push(canvasCell.toDataURL('image/jpeg'))
+            }
+          }
+        }
+        return sliceArray
+      } else {
+        for (var idx in canvasArr) {
+          tmpctx.drawImage(canvasArr[idx], 0, 0, -w, -h)
+          ctx.drawImage(tmp, w * idx, 0, w, h)
+        }
+        return c.toDataURL('image/jpeg')
+      }
+    };
+  }
+
+  var AR = function (scene, renderer, container, cameraPara, cameraPosition) {
+    var that = this
+    this.scene = scene
+    this.renderer = renderer
+    this.container = container
+    AVR.setCameraPara(that, cameraPara, cameraPosition)
+    this.constraints = {}
+    this.video = null
+    this.openAudio = false
+
+    this.cameraIndex = 1 // 0为前置摄像头，否则为后置
+
+    this._controlTarget = new THREE.Vector3(0.0001, 0, 0)
+    this.camera = new THREE.PerspectiveCamera(this.cameraPara.fov, this.cameraPara.aspect, this.cameraPara.near, this.cameraPara.far)
+    this.camera.position.set(this.cameraPosition.x, this.cameraPosition.y, this.cameraPosition.z)
+
+    this.cameraReady = false
+    this.scene.add(this.camera)
+    this.clock = new THREE.Clock()
+    this.tempCanvas = document.createElement('canvas')
+    this.effect = AVR.stereoEffect(this.renderer)
+    this._takeScreenShot = false
+  }
+  AR.prototype.init = function () {
+    var self = this
+    AVR.bindOrientationEvent(self, self._controlTarget)
+    this.video = AVR.createTag('video', {
+      'webkit-playsinline': true,
+      'playsinline': true,
+      'preload': 'auto',
+      'x-webkit-airplay': 'allow',
+      'x5-playsinline': true,
+      'x5-video-player-type': 'h5',
+      'x5-video-player-fullscreen': true,
+      'x5-video-orientation': 'portrait',
+      'style': 'object-fit: fill',
+      'autoplay': 'autoplay'
+    }, {
+      'allowsInlineMediaPlayback': true
+    })
+
+    // this.video.style.display = "none";
+    this.video.style.zIndex = '-99999'
+    this.video.style.position = 'absolute'
+    this.video.style.left = '0px'
+    this.video.style.top = '0px'
+    this.video.style.width = '2px'
+    this.video.style.height = '2px'
+    document.body.appendChild(this.video)
+    this.video.oncanplaythrough = function () {
+      self.cameraReady = true
+      if (self.video.readyState === self.video.HAVE_ENOUGH_DATA) {
+        self.cameraTexture = new THREE.VideoTexture(self.video)
+        self.cameraTexture.generateMipmaps = false
+        self.cameraTexture.format = THREE.RGBAFormat
+        self.cameraTexture.maxFilter = THREE.NearestFilter
+        self.cameraTexture.minFilter = THREE.NearestFilter
+        self.scene.background = self.cameraTexture // 背景视频纹理
+        self.cameraTexture.needsUpdate = true
+      }
+    }
+
+    navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia
+    window.URL = window.URL || window.webkitURL || window.mozURL || window.msURL
+
+    if (navigator.getUserMedia) {
+      var medias = {
+        audio: self.openAudio,
+        video: {
+          facingMode: {
+            exact: self.cameraIndex ? 'environment' : 'user'
+          }
+        }
+      }
+      navigator.getUserMedia(medias, successCallback, errorCallback)
+    } else {
+      alert('Native device meadia streaming(getUserMdeia) not supported in this browser.')
+    }
+
+    function successCallback (stream) {
+      self.video.srcObject = stream
+    };
+
+    function errorCallback (err) {
+      alert(err)
+    };
+  }
+  AR.prototype.takeCameraPhoto = function () {
+    var ctx = this.tempCanvas.getContext('2d')
+    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight)
+    ctx.drawImage(this.video, 0, 0, window.innerWidth, window.innerHeight) // 将video对象内指定的区域捕捉绘制到画布上指定的区域，实现拍照。
+    return ctx.toDataURL('image/jpeg')
+  }
+  AR.prototype.takeScreenShot = function (callback) {
+    this._takeScreenShot = true
+    this._takeScreenShotCallback = callback
+  }
+  AR.prototype.play = function () {
+    var that = this
+
+    function render () {
+      if (that._takeScreenShot) {
+        that._takeScreenShot = false
+        var screenshot = that.renderer.domElement.toDataURL('image/jpeg')
+        that._takeScreenShotCallback(screenshot)
+      }
+      if (that.cameraReady) {
+        var width = window.innerWidth
+        var height = window.innerHeight
+        that.camera.aspect = width / height
+        that.cameraTexture.repeat.y = height / that.video.videoHeight
+        that.cameraTexture.offset.x = 0
+        that.cameraTexture.offset.y = 0
+        if ((AVR.isMobileDevice() && AVR.isCrossScreen())) {
+          that.cameraTexture.repeat.x = width / (2 * that.video.videoWidth)
+          that.effect.setSize(width, height)
+          that.effect.render(that.scene, that.camera)
+        } else {
+          that.cameraTexture.repeat.x = width / that.video.videoWidth
+          that.renderer.setSize(width, height)
+          that.renderer.setClearColor(new THREE.Color(0xffffff))
+          that.renderer.render(that.scene, that.camera)
+        }
+        that.camera.updateProjectionMatrix()
+      }
+      if (that.controls) {
+        that.controls.update(that.clock.getDelta())
+      }
+    }
+
+    function animate () {
+      requestAnimationFrame(animate)
+      render()
+    }
+    animate()
+  }
+
+  var AVR = {
+    debug: false,
+    startGyro: function (callback) {
+      window.addEventListener('deviceorientation', orientationHandler, false)
+
+      function orientationHandler (event) {
+        callback(event)
+      }
+    },
+    stereoEffect: function (renderer) {
+      // API
+      /* Angle of deviation */
+      this.separation = 1
+
+      /*
+           * Distance to the non-parallax or projection plane
+           */
+      this.focalLength = 15
+
+      // internals
+
+      var _width, _height
+
+      var _position = new THREE.Vector3()
+      var _quaternion = new THREE.Quaternion()
+      var _scale = new THREE.Vector3()
+
+      var _cameraL = new THREE.PerspectiveCamera()
+      var _cameraR = new THREE.PerspectiveCamera()
+
+      var _fov
+      var _outer, _inner, _top, _bottom
+      var _ndfl, _halfFocalWidth, _halfFocalHeight
+      var _innerFactor, _outerFactor
+
+      // initialization
+
+      renderer.autoClear = false
+
+      this.setSize = function (width, height) {
+        _width = width / 2
+        _height = height
+
+        renderer.setSize(width, height)
+      }
+
+      this.render = function (scene, camera) {
+        scene.updateMatrixWorld()
+
+        void 0 === camera.parent && camera.updateMatrixWorld()
+
+        camera.matrixWorld.decompose(_position, _quaternion, _scale)
+
+        // Stereo frustum calculation
+
+        // Effective fov of the camera
+        _fov = THREE.Math.radToDeg(2 * Math.atan(Math.tan(THREE.Math.degToRad(camera.fov) * 0.5)))
+
+        _ndfl = camera.near / this.focalLength
+        _halfFocalHeight = Math.tan(THREE.Math.degToRad(_fov) * 0.5) * this.focalLength
+        _halfFocalWidth = _halfFocalHeight * 0.5 * camera.aspect
+
+        _top = _halfFocalHeight * _ndfl
+        _bottom = -_top
+        _innerFactor = (_halfFocalWidth + this.separation / 2.0) / (_halfFocalWidth * 2.0)
+        _outerFactor = 1.0 - _innerFactor
+
+        _outer = _halfFocalWidth * 2.0 * _ndfl * _outerFactor
+        _inner = _halfFocalWidth * 2.0 * _ndfl * _innerFactor
+
+        // left
+
+        _cameraL.projectionMatrix.makePerspective(
+          -_outer,
+          _inner,
+          _top,
+          _bottom,
+          camera.near,
+          camera.far
+        )
+
+        _cameraL.position.copy(_position)
+        _cameraL.quaternion.copy(_quaternion)
+        _cameraL.translateX(-this.separation / 2.0)
+
+        // right
+
+        _cameraR.projectionMatrix.makePerspective(
+          -_inner,
+          _outer,
+          _top,
+          _bottom,
+          camera.near,
+          camera.far
+        )
+
+        _cameraR.position.copy(_position)
+        _cameraR.quaternion.copy(_quaternion)
+        _cameraR.translateX(this.separation / 2.0)
+
+        //
+
+        renderer.setViewport(0, 0, _width * 2, _height)
+        // renderer.clear();
+
+        renderer.setViewport(0, 0, _width, _height)
+        renderer.render(scene, _cameraL)
+
+        renderer.setViewport(_width, 0, _width, _height)
+        renderer.render(scene, _cameraR)
+      }
+      return this
+    },
+    orbitControls: function (object, domElement) {
+      var controls = function (object, domElement) {
+        this.domElement = (void 0 !== domElement) ? domElement : document
+        this.object = object
+        this.object.rotation.reorder('YXZ')
+
+        this.enable = !0
+
+        this.target = new THREE.Vector3()
+
+        // How far you can orbit vertically, upper and lower limits.
+        // Range is 0 to Math.PI radians.
+        this.minPolarAngle = 0 // radians
+        this.maxPolarAngle = Math.PI // radians
+
+        // How far you can orbit horizontally, upper and lower limits.
+        // If set, must be a sub-interval of the interval [ - Math.PI, Math.PI ].
+        this.minAzimuthAngle = -Infinity // radians
+        this.maxAzimuthAngle = Infinity // radians
+
+        // Set to true to enable damping (inertia)
+        // If damping is enabled, you must call controls.update() in your animation loop
+        this.enableDamping = !1
+        this.dampingFactor = 0.05
+
+        this.rotateSpeed = 0.25
+
+        // Set to true to automatically rotate around the target
+        // If auto-rotate is enabled, you must call controls.update() in your animation loop
+        this.autoRotate = !1
+        this.autoRotateSpeed = 1.0 // 30 seconds per round when fps is 60
+
+        this.deviceOrientation = {}
+        this.screenOrientation = 0
+
+        var scope = this
+
+        scope.defaultDirectionOfRotation = !0
+        scope.gyroEnable = !1
+        scope.usingGyro = AVR.OS.isMobile() ? !0 : !1
+        scope._defaultTargetY = scope.target.y
+        scope._defaultCameraFov = scope.object.fov
+        scope._defaultCameraY = scope.object.position.y
+        var changeEvent = {
+          type: 'change'
+        }
+        var startEvent = {
+          type: 'start'
+        }
+        var endEvent = {
+          type: 'end'
+        }
+
+        var EPS = 0.000001
+
+        var isFirst = true
+        // current position in spherical coordinates
+        var spherical = new THREE.Spherical()
+        var sphericalDelta = new THREE.Spherical()
+
+        var rotateStart = new THREE.Vector2()
+        var rotateEnd = new THREE.Vector2()
+        var rotateDelta = new THREE.Vector2()
+        var rotateOffsetDelta = new THREE.Vector3(0, 0, 0)
+
+        var lastGamma = 0,
+          lastBeta = 0
+
+        var tempAlpha = 0,
+          tempBeta = 0,
+          tempGamma = 0
+
+        this.target0 = this.target.clone()
+        this.position0 = this.object.position.clone()
+        this.rotation0 = this.object.rotation.clone()
+        this.zoom0 = this.object.zoom
+        //
+        // public methods
+        //
+        this.arrowLeft = 37
+        this.arrowUp = 38
+        this.arrowRight = 39
+        this.arrowDown = 40
+        this.arrowSpeed = 0.05
+
+        this.getPolarAngle = function () {
+          return spherical.phi
+        }
+
+        this.getAzimuthalAngle = function () {
+          return spherical.theta
+        }
+
+        this.saveState = function () {
+          scope.target0.copy(scope.target)
+          scope.position0.copy(scope.object.position)
+          scope.rotation0.copy(scope.object.rotation)
+          scope.zoom0 = scope.object.zoom
+        }
+
+        this.reset = function (config) {
+          this.resetVar()
+          scope.dispatchEvent(changeEvent);
+          (config && config.target0) ? scope.target.copy(config.target0) : scope.target.copy(scope.target0);
+          (config && config.position0) ? scope.object.position.copy(config.position0) : scope.object.position.copy(scope.position0);
+          (config && config.rotation0) ? scope.object.rotation.copy(config.rotation0) : scope.object.rotation.copy(scope.rotation0);
+          (config && config.zoom0) ? (scope.zoom = zoom0) : scope.zoom0
+        }
+        this.resetVar = function () {
+          tempAlpha = 0
+          tempBeta = 0
+          tempGamma = 0
+          lastGamma = 0
+          lastBeta = 0
+        }
+        var setObjectQuaternion = (function () {
+          var zee = new THREE.Vector3(0, 0, 1)
+          var euler = new THREE.Euler()
+          var q0 = new THREE.Quaternion()
+          // - PI/2 around the x-axis
+          var q1 = new THREE.Quaternion(-Math.sqrt(0.5), 0, 0, Math.sqrt(0.5))
+
+          // beta=beta-180;
+          return function (quaternion, alpha, beta, gamma, orient) {
+            // 'ZXY' for the device, but 'YXZ' for us
+            euler.set(beta, alpha, -gamma, 'YXZ')
+            // orient the device
+            quaternion.setFromEuler(euler)
+            // camera looks out the back of the device, not the top
+            quaternion.multiply(q1)
+            // adjust for screen orientation
+            quaternion.multiply(q0.setFromAxisAngle(zee, -orient))
+          }
+        }())
+
+        // this method is exposed, but perhaps it would be better if we can make it private...
+        this.update = (function () {
+          var offset = new THREE.Vector3()
+
+          // so camera.up is the orbit axis
+
+          var quat = new THREE.Quaternion().setFromUnitVectors(object.up, new THREE.Vector3(0, 1, 0))
+          var quatInverse = quat.clone().inverse()
+
+          var lastPosition = new THREE.Vector3()
+          var lastQuaternion = new THREE.Quaternion()
+
+          return function update (param) {
+            if (!scope.enable) {
+              return
+            }
+            param = param || {}
+
+            var alpha = scope.deviceOrientation.alpha ? THREE.Math.degToRad(void 0 === scope.beginAlpha ? scope.deviceOrientation.alpha : scope.deviceOrientation.alpha - scope.beginAlpha) : 0 // Z
+            var beta = scope.deviceOrientation.beta ? THREE.Math.degToRad(scope.deviceOrientation.beta) : 0 // X'
+            var gamma = scope.deviceOrientation.gamma ? THREE.Math.degToRad(scope.deviceOrientation.gamma) : 0 // Y''
+            var orient = scope.screenOrientation ? THREE.Math.degToRad(scope.screenOrientation) : 0 // O
+            if (scope.gyroEnable) {
+              tempAlpha = alpha, tempBeta = beta, tempGamma = gamma
+            } else {
+              alpha = tempAlpha, beta = tempBeta, gamma = tempGamma
+            }
+
+            var currentQ = new THREE.Quaternion().copy(scope.object.quaternion)
+
+            setObjectQuaternion(currentQ, alpha, beta, gamma, orient)
+
+            var currentAngle = Quat2Angle(currentQ.x, currentQ.y, currentQ.z, currentQ.w)
+            if (!param.init) {
+              // currentAngle.z = Left-right
+              // currentAngle.y = Up-down
+              rotateLeft((lastGamma - currentAngle.z))
+              // rotateUp((lastBeta - currentAngle.y));
+            }
+
+            lastBeta = currentAngle.y
+            lastGamma = currentAngle.z
+            var position = scope.object.position
+
+            offset.copy(position).sub(scope.target)
+
+            // rotate offset to "y-axis-is-up" space
+            offset.applyQuaternion(quat)
+
+            // angle from z-axis around y-axis
+            spherical.setFromVector3(offset)
+
+            if (scope.autoRotate) {
+              rotateLeft(getAutoRotationAngle())
+            }
+
+            spherical.theta += sphericalDelta.theta
+            spherical.phi += sphericalDelta.phi
+
+            // restrict theta to be between desired limits
+            spherical.theta = Math.max(scope.minAzimuthAngle, Math.min(scope.maxAzimuthAngle, spherical.theta))
+
+            // restrict phi to be between desired limits
+            spherical.phi = Math.max(scope.minPolarAngle, Math.min(scope.maxPolarAngle, spherical.phi))
+
+            spherical.makeSafe()
+            offset.setFromSpherical(spherical)
+
+            // rotate offset back to "camera-up-vector-is-up" space
+            offset.applyQuaternion(quatInverse)
+
+            position.copy(scope.target).add(offset)
+            if (scope.deviceOrientation && scope.gyroEnable) {
+              setObjectQuaternion(scope.object.quaternion, alpha + Math.PI + rotateOffsetDelta.x, beta + rotateOffsetDelta.y, gamma + rotateOffsetDelta.z, orient)
+              // return true;
+            } else {
+              scope.object.lookAt(scope.target)
+            }
+            if (scope.enableDamping && !scope.gyroEnable) {
+              sphericalDelta.theta *= (1 - scope.dampingFactor)
+              sphericalDelta.phi *= (1 - scope.dampingFactor)
+            } else {
+              sphericalDelta.set(0, 0, 0)
+            }
+
+            // update condition is:
+            // min(camera displacement, camera rotation in radians)^2 > EPS
+            // using small-angle approximation cos(x/2) = 1 - x^2 / 8
+
+            if (lastPosition.distanceToSquared(scope.object.position) > EPS ||
+              8 * (1 - lastQuaternion.dot(scope.object.quaternion)) > EPS) {
+              scope.dispatchEvent(changeEvent)
+
+              lastPosition.copy(scope.object.position)
+              lastQuaternion.copy(scope.object.quaternion)
+
+              return true
+            }
+            return false
+          }
+        }())
+
+        function getAutoRotationAngle () {
+          return 2 * Math.PI / 60 / 60 * scope.autoRotateSpeed
+        }
+
+        function rotateLeft (angle) {
+          if (scope.defaultDirectionOfRotation) {
+            if (scope.usingGyro) {
+              sphericalDelta.theta -= angle
+            } else {
+              sphericalDelta.theta += angle
+            }
+          } else {
+            sphericalDelta.theta -= angle
+          }
+        }
+
+        function rotateUp (angle) {
+          if (scope.defaultDirectionOfRotation) {
+            if (scope.usingGyro) {
+              sphericalDelta.phi -= angle
+            } else {
+              sphericalDelta.phi += angle
+            }
+          } else {
+            sphericalDelta.phi -= angle
+          }
+        }
+
+        function Quat2Angle (x, y, z, w) {
+          var pitch, roll, yaw
+
+          var test = x * y + z * w
+          if (test > 0.499) { // singularity at north pole
+            yaw = 2 * Math.atan2(x, w)
+            pitch = Math.PI / 2
+            roll = 0
+
+            var euler = new THREE.Vector3(pitch, roll, yaw)
+            return euler
+          }
+
+          if (test < -0.499) { // singularity at south pole
+            yaw = -2 * Math.atan2(x, w)
+            pitch = -Math.PI / 2
+            roll = 0
+            var euler = new THREE.Vector3(pitch, roll, yaw)
+            return euler
+          }
+
+          var sqx = x * x
+          var sqy = y * y
+          var sqz = z * z
+
+          yaw = Math.atan2(2 * y * w - 2 * x * z, 1 - 2 * sqy - 2 * sqz)
+          pitch = Math.asin(2 * test)
+          roll = Math.atan2(2 * x * w - 2 * y * z, 1 - 2 * sqx - 2 * sqz)
+          var euler = new THREE.Vector3(pitch, roll, yaw)
+          return euler
+        }
+
+        function calcDeltaLeft (x, clientWidth) {
+          return 2 * Math.PI * x / clientWidth * scope.rotateSpeed
+        }
+
+        function calcDeltaUp (y, clientHeight) {
+          return 2 * Math.PI * y / clientHeight * scope.rotateSpeed
+        }
+        var mouseDown = false
+
+        function mousedown (e) {
+          mouseDown = true
+          var x = e.clientX || e.changedTouches[0].clientX
+          var y = e.clientY || e.changedTouches[0].clientY
+          rotateStart.set(x, y)
+        }
+
+        function mousemove (e) {
+          var x = e.clientX || e.changedTouches[0].clientX
+          var y = e.clientY || e.changedTouches[0].clientY
+          rotateEnd.set(x, y)
+          rotateDelta.subVectors(rotateEnd, rotateStart)
+
+          // rotating across whole screen goes 360 degrees around
+          var clientWidth = (void 0 !== scope.domElement.clientWidth) ? scope.domElement.clientWidth : window.innerWidth
+          rotateLeft(calcDeltaLeft(rotateDelta.x, clientWidth))
+
+          // rotating up and down along whole screen attempts to go 360, but limited to 180
+          var clientHeight = (void 0 !== scope.domElement.clientHeight) ? scope.domElement.clientHeight : window.innerHeight
+          rotateUp(calcDeltaUp(rotateDelta.y, clientHeight))
+
+          rotateStart.copy(rotateEnd)
+        }
+
+        function mouseup (event) {
+          mouseDown = !1
+        }
+
+        function touchstart (event) {
+          // console.log( 'handleTouchStartRotate' );
+          mouseDown = !0
+          rotateStart.set(event.touches[0].pageX, event.touches[0].pageY)
+          scope.usingGyro = !1
+        }
+
+        function touchmove (event) {
+          // console.log( 'handleTouchMoveRotate' );
+
+          event.preventDefault()
+
+          rotateEnd.set(event.touches[0].pageX, event.touches[0].pageY)
+          rotateDelta.subVectors(rotateEnd, rotateStart)
+
+          // rotating across whole screen goes 360 degrees around
+          var clientWidth = (void 0 != scope.domElement.clientWidth) ? scope.domElement.clientWidth : window.innerWidth
+          rotateLeft(calcDeltaLeft(rotateDelta.x, clientWidth))
+
+          // rotating up and down along whole screen attempts to go 360, but limited to 180
+          var clientHeight = (void 0 !== scope.domElement.clientHeight) ? scope.domElement.clientHeight : window.innerHeight
+          rotateUp(calcDeltaUp(rotateDelta.y, clientHeight))
+
+          rotateStart.copy(rotateEnd)
+          rotateOffsetDelta.x += calcDeltaLeft(rotateDelta.x, clientWidth) + calcDeltaUp(rotateDelta.y, clientHeight)
+          scope.usingGyro = !1
+        }
+
+        function touchend (event) {
+          // console.log( 'handleTouchEnd' );
+          scope.usingGyro = AVR.OS.isMobile() ? !0 : !1
+          mouseDown = false
+        }
+
+        function deviceorientation (event) {
+          scope.deviceOrientation = event
+          void 0 === scope.beginAlpha && (scope.beginAlpha = scope.deviceOrientation.alpha)
+        }
+
+        function orientationchange (event) {
+          scope.screenOrientation = window.orientation || 0
+        }
+
+        var devices = null
+        if (typeof DeviceMotionEvent !== 'undefined') {
+          devices = DeviceMotionEvent
+        }
+        if (typeof DeviceOrientationEvent !== 'undefined') {
+          devices = DeviceOrientationEvent
+        }
+        window.addEventListener('orientationchange', orientationchange, false)
+        window.addEventListener('deviceorientation', deviceorientation, false)
+        if (devices && typeof devices.requestPermission === 'function') {
+          window.addEventListener('click', function () {
+            devices.requestPermission()
+              .then(function (permissionState) {
+                if (permissionState === 'granted') {
+                  window.addEventListener('devicemotion', orientationchange, false)
+                  window.addEventListener('deviceorientation', deviceorientation, false)
                 }
-            }(); var _ = !1; window.addEventListener("orientationchange", f, !1), window.addEventListener("deviceorientation", v, !1), this.gyroFreeze = function () { p.gyroEnable = !1 }, this.gyroUnfreeze = function () { p.gyroEnable = !0 }, this.rotationLeft = r, this.rotationUp = o, this.domElement.addEventListener("mousedown", c, !1), this.domElement.addEventListener("mousemove", function (e) { p.enable && _ && l(e) }, !1), this.domElement.addEventListener("mouseup", d, !1), this.domElement.addEventListener("touchstart", u, !1), this.domElement.addEventListener("touchend", h, !1), this.domElement.addEventListener("touchmove", m, !1); var M = void 0 !== this.domElement.clientWidth ? this.domElement.clientWidth : window.innerWidth, P = void 0 !== this.domElement.clientHeight ? this.domElement.clientHeight : window.innerHeight; return y.set(M / 2, P / 2), setTimeout(function () { p.update({ init: !0 }), p.saveState() }, 10), this
-        }; return i.prototype = Object.create(THREE.EventDispatcher.prototype), i.prototype.constructor = i, new i(e, t)
-    }, setCameraPara: function (e, t, i) { if (e.cameraPara = { fov: 90, aspect: e.container.innerWidth / e.container.innerHeight, near: .001, far: 1e3 }, e.cameraPosition = { x: 0, y: 0, z: 0 }, t) for (var r in t) e.cameraPara[r] = t[r]; if (i) for (var r in i) e.cameraPosition[r] = i[r] }, formatSeconds: function (e) { var t = parseInt(e); if (!t) return "00:00"; var i = 0, r = 0; t > 60 && (i = parseInt(t / 60), t = parseInt(t % 60), i > 60 && (r = parseInt(i / 60), i = parseInt(i % 60))); var o = "" + (parseInt(t) < 10 ? "0" + parseInt(t) : parseInt(t)); return o = i >= 0 && r > 0 ? (parseInt(r) < 10 ? "0" + parseInt(r) : parseInt(r)) + ":" + (parseInt(i) < 10 ? "0" + parseInt(i) : parseInt(i)) + ":" + o : i > 0 && 0 == r ? 60 == i ? "01:00:" + o : (parseInt(i) < 10 ? "0" + parseInt(i) : parseInt(i)) + ":" + o : 60 == t ? "01:00" : "00:" + o }, cameraVector: function (e, t) { var i = new THREE.Vector3(0, 0, (-1)), r = i.applyQuaternion(e.quaternion), o = r.clone(), n = new THREE.Vector3; return t && (n.x = r.x * t, n.y = r.y * t, n.z = r.z * t), { vector: o, timesVector: n } }, bindRaycaster: function (e, t, i) { var r = AVR.screenPosTo3DCoordinate(e, t.container, t.camera), o = new THREE.Raycaster(t.camera.position, r.sub(t.camera.position).normalize()), n = o.intersectObjects(t.scene.children, !0); n.length ? i.success(n) : i.empty() }, bindCameraEvent: function (e, t) { t = t || { trigger: function (e) { }, empty: function (e) { }, move: function (e) { } }; var i = this, r = t.scale || .022, o = t.vectorRadius, n = o * r, a = o * (r / 6), s = 2, c = t.tubularSegments || 60, l = t.speed || 36, d = new THREE.Group; d.name = "__controlHandle"; for (var u = new THREE.TorusGeometry(n, a, s, c, 2 * Math.PI), m = [], h = 0; h < u.faces.length / 2; h++)m[h] = new THREE.MeshBasicMaterial({ color: 15194842, depthTest: !1 }); for (var v = 0, f = [new THREE.Vector2(0, 0), new THREE.Vector2(1, 0), new THREE.Vector2(1, 1), new THREE.Vector2(0, 1)], h = 0, p = u.faces.length; h < p; h += 2)u.faces[h].materialIndex = v, u.faces[h + 1].materialIndex = v, u.faceVertexUvs[0][h] = [f[3], f[0], f[2]], u.faceVertexUvs[0][h + 1] = [f[0], f[1], f[2]], v++; var g = new THREE.Mesh(u, m); g.name = "__wait", g.visible = !1, d.add(g); var E = new THREE.Mesh(new THREE.CircleGeometry(a, 4), new THREE.MeshBasicMaterial({ color: 15194842, wireframe: !0, depthTest: !1 })); E.lookAt(e.camera.position), E.name = "__focus", E.material.depthTest = !1, E.visible = !1, d.add(E), d.position.set(0, 0, .1); var T = (new THREE.Vector3, function () { d.lookAt(0, 0, 0), g.lookAt(0, 0, 0); var r = i.cameraVector(e.camera, o); E.visible = !0, d.position.set(r.timesVector.x, r.timesVector.y, r.timesVector.z); var n = new THREE.Raycaster(e.camera.position, r.vector), a = n.intersectObjects(e.scene.children, !0); a.length ? t.move(a) : t.empty(a) }), b = null, y = function (e) { g.visible = !0; var i = 0, r = 0; b || (b = setInterval(function () { r < u.faces.length / 4 ? (m[r].color = new THREE.Color(14710133), u.needsUpdate = !0, u.faces[i].materialIndex = r, u.faces[i + 1].materialIndex = r, u.faceVertexUvs[0][i] = [f[3], f[0], f[2]], u.faceVertexUvs[0][i + 1] = [f[0], f[1], f[2]], i += 2) : (clearInterval(b), b = null, t.trigger(e)), r++ }, l)) }, w = function (e) { clearInterval(b), b = null, v = 0; for (var t = 0, i = u.faces.length; t < i; t += 2)m[v].color = new THREE.Color(15194842), u.needsUpdate = !0, u.faces[t].materialIndex = v, u.faces[t + 1].materialIndex = v, u.faceVertexUvs[0][t] = [f[3], f[0], f[2]], u.faceVertexUvs[0][t + 1] = [f[0], f[1], f[2]], v++; g.visible = !1 }; e.VRObject.add(d), e.cameraEvt.controlGroup = d, e.cameraEvt.updatePosition = T, e.cameraEvt.hover = y, e.cameraEvt.leave = w }, screenPosTo3DCoordinate: function (e, t, i) { var r = e.clientX || (e.touches ? e.touches[0].clientX : 0), o = e.clientY || (e.touches ? e.touches[0].clientY : 0); rect = AVR.getBoundingClientRect(t), x = r - rect.left, y = o - rect.top; var n = t.clientWidth, a = t.clientHeight, s = new THREE.Vector2; s.x = 2 * x / n - 1, s.y = 1 - 2 * y / a; var c = new THREE.Vector3(s.x, s.y, 0).unproject(i); return c.sub(i.position).normalize() }, objectPosToScreenPos: function (e, t, i) { var r = new THREE.Vector3; r.setFromMatrixPosition(e.matrixWorld).project(i); var o = r.x, n = r.y, a = t.clientWidth, s = t.clientHeight, c = new THREE.Vector2; return c.x = a / 2 * (o + 1), c.y = s / 2 * (1 - n), c }, fullscreen: function (e) { var t = document.fullScreen || document.mozFullScreen || document.webkitIsFullScreen || !1; t ? document.exitFullscreen ? document.exitFullscreen() : document.mozCancelFullScreen ? document.mozCancelFullScreen() : document.webkitExitFullscreen ? document.webkitExitFullscreen() : "" : e.requestFullscreen && e.requestFullscreen() || e.mozRequestFullScreen && e.mozRequestFullScreen() || e.webkitRequestFullscreen && e.webkitRequestFullscreen() || e.msRequestFullscreen && e.msRequestFullscreen() }, isFullscreen: function () { return document.fullscreenElement || document.msFullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement || !1 }, toolBar: function (e) { function t(e) { for (var t = e.match(/&#(\d+);/g), i = "", r = 0; r < t.length; r++)i += String.fromCharCode(t[r].replace(/[&#;]/g, "")); return i } var i = "_toolBar", r = this.createTag("div", { style: "-moz-user-select:none;-webkit-user-select:none;user-select:none;position:absolute;background:rgba(0,0,0,.2);width:100%;height:2.2rem;bottom:0rem", "class": i + "Area" }), o = this.createTag("div", { style: "position:inherit;border-top:0.6rem solid transparent;border-left:1rem solid white;border-bottom:0.6rem solid transparent;bottom:0.25rem;left:1rem;color:#fff;font-weight:800;cursor:pointer", "class": i + "Btn" }); r.appendChild(o); var n = this.createTag("div", { style: "position:inherit;bottom:0.25rem;left:2.8rem;color:#fff;font-size:0.75rem" }), a = this.createTag("span", null, { innerText: "00:00" }); n.appendChild(a); var s = this.createTag("span", null, { innerText: "/" }); n.appendChild(s); var c = this.createTag("span", null, { innerText: "00:00" }); n.appendChild(c), r.appendChild(n); var l = document.styleSheets[0]; l.insertRule("@keyframes moreTip{from {top:0.75rem;} to{top:1rem}}", 0), AVR.Broswer.isIE() || l.insertRule("@-webkit-keyframes moreTip{from {top:0.75rem;} to{top:1rem}}", 0); var d = this.createTag("span", { style: "width:2.2rem;height:2.2rem;position:inherit;left:50%;margin-left:-1.1rem;margin-top:-0.75rem;color:#fff;font-size:1.5rem;cursor:pointer;margin-top:1rem;border:0.0625rem dotted #ccc;height:0.0625rem;" }, { innerHTML: "" }), u = this.createTag("div", { style: "width:100%;height:auto;position:inherit;background:rgba(0,0,0,0);top:2.4rem;bottom:1.8rem;overflow: hidden;" }, null), m = this.createTag("ul", { style: "display:flex;display: -webkit-flex;display: -webkit-box;display: -moz-box;display: -ms-flexbox;margin:0;padding:0;list-style:none;height:100%;" }, null); u.appendChild(m), r.appendChild(d), r.appendChild(u); var h = this.createTag("div", { style: "width:2.2rem;height:2.2rem;position:inherit;right:1rem;margin-left:-1.1rem;margin-top:0.6rem;color:#fff;font-size:1.2rem;cursor:pointer;display:none", copy: "&#67;&#111;&#112;&#121;&#114;&#105;&#103;&#104;&#116;&#32;&#169;&#32;&#50;&#48;&#49;&#56;&#32;&#87;&#87;&#87;&#46;&#77;&#88;&#82;&#69;&#65;&#76;&#73;&#84;&#89;&#46;&#67;&#78;&#46;&#32;&#65;&#108;&#108;&#32;&#114;&#105;&#103;&#104;&#116;&#115;&#32;&#114;&#101;&#115;&#101;&#114;&#118;&#101;&#100;&#46;" }, { innerText: "？" }); h.addEventListener("click", function () { var e = this.getAttribute("copy"); alert(t(e)) }, !1), h.addEventListener("mouseover", function () { var e = this.getAttribute("copy"); this.setAttribute("title", t(e)) }, !1), r.appendChild(h); var v = this.createTag("div", { style: "border:0.125rem solid white;border-radius:1rem;width:1rem;height:1rem;position:inherit;right:5.8rem;line-height:1rem;bottom:0.25rem;cursor:pointer" }), f = this.createTag("div", { style: "border:0.08rem solid white;border-radius:8rem;background:rgba(240,240,240,0.6);width:0.3rem;left:0.26rem;top:0.26rem;height:0.3rem;position:inherit;line-height:0.3rem;cursor:pointer" }); v.appendChild(f), r.appendChild(v); var p = this.createTag("div", { style: "border:0.125rem solid white;border-radius:1rem;width:1.4rem;height:1rem;position:inherit;right:3.5rem;line-height:1rem;bottom:0.25rem;cursor:pointer" }), g = this.createTag("div", { style: "position:inherit;width:1.235rem;height:0.4rem;line-height:0.4rem;border:0.0625rem solid white;border-radius:0.6rem/0.2rem;margin-top:0.25rem;margin-left:0.055rem;" }); p.appendChild(g); var E = this.createTag("div", { style: "position:inherit;width:1rem;height:0.4rem;line-height:0.4rem;border:0.0625rem solid white;border-radius:0.6rem/0.2rem;margin-top:0.25rem;margin-left:0.175rem;transform:rotate(90deg)" }); p.appendChild(E), r.appendChild(p); var T = this.createTag("div", { style: "position:inherit;right:1rem;width:1.4rem;height:1rem;line-height:1rem;border:0.125rem solid white;border-radius:0.125rem;bottom:0.25rem;text-align:center;font-weight:800;color:#fff;font-size:0.75rem;cursor:pointer" }, { innerText: "VR" }); r.appendChild(T); var b = this.createTag("div", { style: "position:inherit;top:0rem;width:100%;height:0.1rem;background:rgba(255,255,255,.3);cursor:pointer" }), y = this.createTag("div", { style: "position:inherit;width:0%;height:0.1rem;background:rgba(255,255,255,.3)" }); b.appendChild(y); var w = this.createTag("div", { style: "position:inherit;width:0%;height:0.1rem;background:rgba(28, 175, 252,.6)" }); b.appendChild(w), r.appendChild(b), e.appendChild(r); var R = this.createTag("div", { style: "-moz-user-select:none;-webkit-user-select:none;user-select:none;position:absolute;width:2rem;height:60%;background:rgba(0,0,0,0);left:0rem;top:20%;text-align:center;display:none;border-radius:1rem;" }), x = this.createTag("div", { style: "position:inherit;width:0.25rem;background:rgba(255,255,255,.1);height:100%;left:0.875rem;cursor:pointer;border-radius:1rem;" }); R.appendChild(x); var A = this.createTag("div", { style: "position:inherit;width:100%;background:rgba(255, 255, 255,.6);bottom:0rem;;border-radius:1rem;" }); return x.appendChild(A), e.appendChild(R), { toolbar: r, btn: o, timeInfo: n, curTime: a, splitTime: s, totalTime: c, moreBtn: d, moreList: u, moreListUl: m, vrBtn: T, progressBar: b, loadedProgress: y, playProgress: w, gyroResetBtn: v, gyroBtn: p, circle1: g, circle2: E, voice_bar: R, about: h } }, msgBox: function (e, t, i) { if (e) { var r = this.createTag("div", { style: "position:absolute;bottom:50%;width:100%;padding:0.25rem;background:rgba(0,0,0,.6);color:#fff;text-align:center;" }, { innerHTML: e }); i.appendChild(r), setTimeout(function () { r.remove() }, 1e3 * t) } }, isMobileDevice: function (e) { var t = navigator.userAgent.toLowerCase(); if (e) return t.match(/ipad/i) || t.match(/iphone os/i) || t.match(/midp/i) || t.match(/rv:1.2.3.4/i) || t.match(/ucweb/i) || t.match(/android/i) || t.match(/windows ce/i) || t.match(/windows mobile/i); var i = "ipad" == t.match(/ipad/i), r = "iphone os" == t.match(/iphone os/i), o = "midp" == t.match(/midp/i), n = "rv:1.2.3.4" == t.match(/rv:1.2.3.4/i), a = "ucweb" == t.match(/ucweb/i), s = "android" == t.match(/android/i), c = "windows ce" == t.match(/windows ce/i), l = "windows mobile" == t.match(/windows mobile/i); return !!(i || r || o || n || a || s || c || l) }, bindOrientationEnevt: function (e) { void 0 === e.controls && (e.controls = AVR.orbitControls(e.camera, e.renderer.domElement), e.controls.target = e._controlTarget.clone()) }, isCrossScreen: function (e) { return 180 != window.orientation && 0 != window.orientation && (90 == window.orientation || window.orientation == -90 || void 0) }, initDomStyle: function (e) { function t(e) { e.preventDefault() } document.body.style.overflow = "hidden", document.body.style.margin = 0, document.body.style.padding = 0, e.style.position = "absolute", e.style.width = "100%", e.style.height = "100%", e.style.left = "0px", e.style.top = "0px", e.style.overflow = "hidden"; var i = document.createElement("style"); document.getElementsByTagName("head")[0].appendChild(i), document.body.addEventListener("touchmove", t), document.oncontextmenu = function () { return !1 }, document.onkeydown = function () { if (!this.debug && window.event && 123 == window.event.keyCode) return event.keyCode = 0, event.returnValue = !1, !1 } }, createTag: function (e, t, i) { var r = document.createElement(e); if (t && "object" == typeof t) for (var o in t) r.setAttribute(o, t[o]); if (i && "object" == typeof i) for (var o in i) r[o] = i[o]; return r }, OS: { weixin: navigator.userAgent.indexOf("MicroMessenger") > -1, android: /android/i.test(navigator.userAgent.toLowerCase()), ios: /(iphone|ipad|ipod|ios)/i.test(navigator.userAgent.toLowerCase()), googlePixel: navigator.userAgent.match(/;\sPixel\sBuild\//), MiOS: navigator.userAgent.match(/;\sMI\s\d\sBuild\//), samsungOS: navigator.userAgent.match(/;\sSM\-\w+\sBuild\//), isGooglePixel: function () { return null != this.googlePixel }, isMiOS: function () { return null != this.MiOS }, isSamsung: function () { return null != this.samsungOS }, isMobile: function () { return this.android || this.ios }, isAndroid: function () { return this.android }, isiOS: function () { return this.ios }, isWeixin: function () { return this.weixin } }, Broswer: { win: window, nav: window.navigator, REG_APPLE: /^Apple/, ie: navigator.userAgent.match(/MSIE\s([\d.]+)/) || navigator.userAgent.match(/Trident\/[\d](?=[^\?]+).*rv:([0-9.].)/), edge: navigator.userAgent.match(/Edge\/([\d.]+)/), chrome: navigator.userAgent.match(/Chrome\/([\d.]+)/) || navigator.userAgent.match(/CriOS\/([\d.]+)/), webview: !this.chrome && navigator.userAgent.match(/(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/), safari: this.webview || navigator.userAgent.match(/Version\/([\d.]+)([^S](Safari)|[^M]*(Mobile)[^S]*(Safari))/), chromiumType: null, _getChromiumType: function () { if (null != this.chromiumType) return this.chromiumType; var e = this.win; return this.isIE() || void 0 === e.scrollMaxX || this.REG_APPLE.test(this.nav.vendor || "") ? "" : this._testExternal(/^sogou/i, 0) ? "sogou" : this._testExternal(/^liebao/i, 0) ? "liebao" : this.nav.mimeTypes[30] || !this.nav.mimeTypes.length ? "360" : e.clientInformation && e.clientInformation.permissions ? "chrome" : "" }, _testExternal: function (e, t) { var i = this.win.external || {}; for (var r in i) if (e.test(t ? i[r] : r)) return !0; return !1 }, isIE: function () { return null != this.ie }, ieVersion: function () { return null != this.ie && parseInt(this.ie[1]) }, isEdge: function () { return null != this.edge }, isSafari: function () { return null != this.safari }, is360: function () { return this.chromiumType = this._getChromiumType(), "360" === this.chromiumType }, isSogou: function () { return this.chromiumType = this._getChromiumType(), "sogou" === this.chromiumType }, isChromium: function () { return "chrome" === this._getChromiumType() }, webglAvailable: function () { try { var e = document.createElement("canvas"); return !(!window.WebGLRenderingContext || !e.getContext("webgl") && !e.getContext("experimental-webgl")) } catch (t) { return !1 } } }, getBoundingClientRect: function (e) { var t = e.getBoundingClientRect(), i = t.top - document.documentElement.clientTop + document.documentElement.scrollTop, r = t.bottom, o = t.left - document.documentElement.clientLeft + document.documentElement.scrollLeft, n = t.right, a = t.width || n - o, s = t.height || r - i; return { top: i, right: n, bottom: r, left: o, width: a, height: s } }
-}, head = document.getElementsByTagName("head")[0]; head.appendChild(AVR.createTag("meta", { name: "viewport", content: "width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0,minimal-ui,user-scalable=no" })), head.appendChild(AVR.createTag("meta", { name: "google", content: "notranslate" })), head.appendChild(AVR.createTag("meta", { name: "full-screen", content: "yes" })), AVR.debug && (window.onerror = function (e, t, i) { var r = "There was an error on this page.\n\n"; return r += "Error: " + e + "\n", r += "URL: " + t + "\n", r += "Line: " + i + "\n\n", AVR.msgBox(r, 36, document.body), !0 });
+              })
+              .catch(function (err) {
+                AVR.msgBox(err, 3, document.body)
+              })
+          })
+        } else {
+          // handle regular non iOS 13+ devices
+        }
+        this.gyroFreeze = function () {
+          scope.gyroEnable = false
+        }
+        this.gyroUnfreeze = function () {
+          scope.gyroEnable = true
+        }
+        this.rotationLeft = rotateLeft
+        this.rotationUp = rotateUp
+
+        var _up = 0
+        var _left = 0
+        document.addEventListener('keydown', function (event) {
+          var e = event || window.event || arguments.callee.caller.arguments[0]
+          if (!e) {
+            return
+          }
+          if (e.keyCode == scope.arrowLeft) { // 按左箭头
+            _left = 1
+          }
+          if (e.keyCode == scope.arrowRight) {
+            _left = -1
+          }
+          if (e.keyCode == scope.arrowUp) {
+            _up = 1
+          }
+          if (e.keyCode == scope.arrowDown) {
+            _up = -1
+          }
+          rotateLeft(_left * scope.arrowSpeed)
+          rotateUp(_up * scope.arrowSpeed)
+        })
+        document.addEventListener('keyup', function (event) {
+          var e = event || window.event || arguments.callee.caller.arguments[0]
+          if (!e) {
+            return
+          }
+          if (e.keyCode == scope.arrowLeft) { // 按左箭头
+            _left = 0
+          }
+          if (e.keyCode == scope.arrowRight) {
+            _left = 0
+          }
+          if (e.keyCode == scope.arrowUp) {
+            _up = 0
+          }
+          if (e.keyCode == scope.arrowDown) {
+            _up = 0
+          }
+        })
+
+        this.domElement.addEventListener('mousedown', mousedown, false)
+        this.domElement.addEventListener('mousemove', function (e) {
+          if (scope.enable && mouseDown) {
+            mousemove(e)
+          }
+        }, false)
+        this.domElement.addEventListener('mouseup', mouseup, false)
+        this.domElement.addEventListener('touchstart', touchstart, false)
+        this.domElement.addEventListener('touchend', touchend, false)
+        this.domElement.addEventListener('touchmove', touchmove, false)
+
+        // set mousemove base point is dom center
+        var clientWidth = (void 0 !== this.domElement.clientWidth) ? this.domElement.clientWidth : window.innerWidth
+        var clientHeight = (void 0 !== this.domElement.clientHeight) ? this.domElement.clientHeight : window.innerHeight
+        rotateStart.set(clientWidth / 2, clientHeight / 2)
+
+        // force an update at start
+        // rotateLeft(THREE.Math.degToRad(-180));
+        setTimeout(function () {
+          // scope.enable = true;
+          scope.update({
+            init: true
+          })
+          scope.saveState()
+        }, 10)
+        return this
+      }
+      controls.prototype = Object.create(THREE.EventDispatcher.prototype)
+      controls.prototype.constructor = controls
+      return new controls(object, domElement)
+    },
+    setCameraPara: function (that, cameraPara, cameraPosition) {
+      that.cameraPara = {
+        'fov': 90,
+        'aspect': that.container.innerWidth / that.container.innerHeight,
+        'near': 0.001,
+        'far': 1000
+      }
+      that.cameraPosition = {
+        'x': 0,
+        'y': 0,
+        'z': 0
+      }
+      if (cameraPara) {
+        for (var property in cameraPara) {
+          that.cameraPara[property] = cameraPara[property]
+        }
+      }
+      if (cameraPosition) {
+        for (var property in cameraPosition) {
+          that.cameraPosition[property] = cameraPosition[property]
+        }
+      }
+    },
+    formatSeconds: function (value) {
+      var theTime = parseInt(value) // 秒
+      if (!theTime) {
+        return '00:00'
+      }
+      var theTime1 = 0 // 分
+      var theTime2 = 0 // 小时
+      if (theTime > 60) {
+        theTime1 = parseInt(theTime / 60)
+        theTime = parseInt(theTime % 60)
+        if (theTime1 > 60) {
+          theTime2 = parseInt(theTime1 / 60)
+          theTime1 = parseInt(theTime1 % 60)
+        }
+      }
+      var result = '' + ((parseInt(theTime) < 10) ? '0' + parseInt(theTime) : parseInt(theTime))
+      if (theTime1 >= 0 && theTime2 > 0) {
+        result = ((parseInt(theTime2) < 10) ? '0' + parseInt(theTime2) : parseInt(theTime2)) + ':' + ((parseInt(theTime1) < 10) ? '0' + parseInt(theTime1) : parseInt(theTime1)) + ':' + result
+      } else if (theTime1 > 0 && theTime2 == 0) {
+        if (theTime1 == 60) {
+          result = '01:00:' + result
+        } else {
+          result = ((parseInt(theTime1) < 10) ? '0' + parseInt(theTime1) : parseInt(theTime1)) + ':' + result
+        }
+      } else {
+        if (theTime == 60) {
+          result = '01:00'
+        } else {
+          result = '00:' + result
+        }
+      }
+      return result
+    },
+    cameraVector: function (camera, times) {
+      var vector = new THREE.Vector3(0, 0, -1)
+      var lookAt = vector.applyQuaternion(camera.quaternion)
+      var lookAtVector = lookAt.clone()
+      var timesVector = new THREE.Vector3()
+      if (times) {
+        timesVector.x = lookAt.x * times
+        timesVector.y = lookAt.y * times
+        timesVector.z = lookAt.z * times
+      }
+      return {
+        'vector': lookAtVector,
+        'timesVector': timesVector
+      }
+    },
+    bindRaycaster: function (event, vr, callback) {
+      var vector = AVR.screenPosTo3DCoordinate(event, vr.container, vr.camera)
+      // 在视点坐标系中形成射线,射线的起点向量是照相机， 射线的方向向量是照相机到点击的点，这个向量应该归一标准化。
+      var raycaster = new THREE.Raycaster(vr.camera.position, vector.sub(vr.camera.position).normalize())
+
+      // 射线和模型求交，选中一系列直线
+      var intersects = raycaster.intersectObjects(vr.scene.children, true)
+
+      if (intersects.length) {
+        callback.success(intersects)
+      } else {
+        callback.empty()
+      }
+    },
+    bindCameraEvent: function (vr, options) {
+      options = options || {
+        trigger: function (e) { },
+        empty: function (e) { },
+        move: function (e) { }
+      }
+      var that = this
+      var scale = options.scale || 0.022
+      var vectorRadius = options.vectorRadius
+      var radius = vectorRadius * scale
+      var tube = vectorRadius * (scale / 6)
+      var pointSize = vectorRadius * (scale / 8)
+      var radialSegments = 2
+      var tubularSegments = options.tubularSegments || 60
+      var speed = options.speed || 36
+      var ControlGroup = new THREE.Group()
+      ControlGroup.name = '__controlHandle'
+
+      var waitGeometry = new THREE.TorusGeometry(radius, tube, radialSegments, tubularSegments, 2 * Math.PI)
+      var waitMaterial = []
+      for (var i = 0; i < waitGeometry.faces.length / 2; i++) {
+        waitMaterial[i] = new THREE.MeshBasicMaterial({
+          color: 0xe7dada,
+          depthTest: false
+        })
+      }
+      var faceId = 0
+      var uv = [new THREE.Vector2(0, 0), new THREE.Vector2(1, 0), new THREE.Vector2(1, 1), new THREE.Vector2(0, 1)]
+      for (var i = 0, l = waitGeometry.faces.length; i < l; i += 2) {
+        waitGeometry.faces[i].materialIndex = faceId
+        waitGeometry.faces[i + 1].materialIndex = faceId
+        waitGeometry.faceVertexUvs[0][i] = [uv[3], uv[0], uv[2]]
+        waitGeometry.faceVertexUvs[0][i + 1] = [uv[0], uv[1], uv[2]]
+        faceId++
+      }
+      var wait = new THREE.Mesh(waitGeometry, waitMaterial)
+      // wait.lookAt(vr.camera.position)
+      wait.name = '__wait'
+      wait.visible = false
+      ControlGroup.add(wait)
+
+      var cameraPointer = new THREE.Mesh(new THREE.CircleGeometry(tube, 4), new THREE.MeshBasicMaterial({
+        color: 0xe7dada,
+        wireframe: true,
+        depthTest: false
+      }))
+      cameraPointer.lookAt(vr.camera.position)
+      cameraPointer.name = '__focus'
+      cameraPointer.material.depthTest = false
+      cameraPointer.visible = false
+      ControlGroup.add(cameraPointer)
+      ControlGroup.position.set(0, 0, 0.1)
+      var timer = null
+      var lastCameraVector = new THREE.Vector3()
+
+      var updatePosition = function () {
+        ControlGroup.lookAt(0, 0, 0)
+        wait.lookAt(0, 0, 0)
+        var v = that.cameraVector(vr.camera, vectorRadius)
+        cameraPointer.visible = true
+        ControlGroup.position.set(v.timesVector.x, v.timesVector.y, v.timesVector.z)
+        // 在视点坐标系中形成射线,射线的起点向量是照相机， 射线的方向向量是照相机到点击的点，这个向量应该归一标准化。
+        var raycaster = new THREE.Raycaster(vr.camera.position, v.vector)
+
+        // 射线和模型求交，选中一系列直线
+        var intersects = raycaster.intersectObjects(vr.scene.children, true)
+        if (intersects.length) {
+          options.move(intersects)
+        } else {
+          options.empty(intersects)
+        }
+      }
+      var Ctimer = null
+      var hover = function (e) {
+        wait.visible = true
+        var offset = 0
+        var mIndex = 0
+        if (!Ctimer) {
+          Ctimer = setInterval(function () {
+            if (mIndex < waitGeometry.faces.length / 4) {
+              waitMaterial[mIndex].color = new THREE.Color(0xe07575)
+              waitGeometry.needsUpdate = true
+              waitGeometry.faces[offset].materialIndex = mIndex
+              waitGeometry.faces[offset + 1].materialIndex = mIndex
+              waitGeometry.faceVertexUvs[0][offset] = [uv[3], uv[0], uv[2]]
+              waitGeometry.faceVertexUvs[0][offset + 1] = [uv[0], uv[1], uv[2]]
+              offset += 2
+            } else {
+              clearInterval(Ctimer)
+              Ctimer = null
+              options.trigger(e)
+            }
+            mIndex++
+          }, speed)
+        }
+      }
+      var leave = function (e) {
+        clearInterval(Ctimer)
+        Ctimer = null
+        faceId = 0
+        for (var i = 0, l = waitGeometry.faces.length; i < l; i += 2) {
+          waitMaterial[faceId].color = new THREE.Color(0xe7dada)
+          waitGeometry.needsUpdate = true
+          waitGeometry.faces[i].materialIndex = faceId
+          waitGeometry.faces[i + 1].materialIndex = faceId
+          waitGeometry.faceVertexUvs[0][i] = [uv[3], uv[0], uv[2]]
+          waitGeometry.faceVertexUvs[0][i + 1] = [uv[0], uv[1], uv[2]]
+          faceId++
+        }
+        wait.visible = false
+      }
+      vr.VRObject.add(ControlGroup)
+      vr.cameraEvt.controlGroup = ControlGroup
+      vr.cameraEvt.updatePosition = updatePosition
+      vr.cameraEvt.hover = hover
+      vr.cameraEvt.leave = leave
+      // vr.cameraEvt={'controlGroup':ControlGroup,'updatePosition':updatePosition,'hover':hover,'leave':leave};
+    },
+    screenPosTo3DCoordinate: function (e, container, camera) {
+      var clientX = e.clientX || (e.touches ? e.touches[0].clientX : 0)
+      var clientY = e.clientY || (e.touches ? e.touches[0].clientY : 0)
+      rect = AVR.getBoundingClientRect(container)
+      x = clientX - rect.left
+      y = clientY - rect.top
+      // console.log(x, y);
+      var W = container.clientWidth
+      var H = container.clientHeight
+      var mouse = new THREE.Vector2()
+      mouse.x = 2 * x / W - 1
+      mouse.y = 1 - 2 * y / H
+      var vector = new THREE.Vector3(mouse.x, mouse.y, 0).unproject(camera)
+      return vector.sub(camera.position).normalize()
+      // return vector;
+    },
+    objectPosToScreenPos: function (object, container, camera) {
+      var vector = new THREE.Vector3()
+      vector.setFromMatrixPosition(object.matrixWorld).project(camera)
+      var x2hat = vector.x,
+        y2hat = vector.y
+      var W = container.clientWidth
+      var H = container.clientHeight
+      var pos = new THREE.Vector2()
+      pos.x = (W / 2) * (x2hat + 1)
+      pos.y = (H / 2) * (1 - y2hat)
+      return pos
+    },
+    fullscreen: function (el) {
+      var isFullscreen = document.fullScreen || document.mozFullScreen || document.webkitIsFullScreen || false
+
+      if (!isFullscreen) { // 进入全屏,多重短路表达式
+        (el.requestFullscreen && el.requestFullscreen()) ||
+          (el.mozRequestFullScreen && el.mozRequestFullScreen()) ||
+          (el.webkitRequestFullscreen && el.webkitRequestFullscreen()) || (el.msRequestFullscreen && el.msRequestFullscreen())
+      } else { // 退出全屏,三目运算符
+        document.exitFullscreen ? document.exitFullscreen()
+          : document.mozCancelFullScreen ? document.mozCancelFullScreen()
+            : document.webkitExitFullscreen ? document.webkitExitFullscreen() : ''
+      }
+    },
+    isFullscreen: function () {
+      return document.fullscreenElement ||
+        document.msFullscreenElement ||
+        document.mozFullScreenElement ||
+        document.webkitFullscreenElement || false
+    },
+    toolBar: function (container) {
+      var pre = '_toolBar'
+      var toolbar = this.createTag('div', {
+        'style': '-moz-user-select:none;-webkit-user-select:none;user-select:none;position:absolute;background:rgba(0,0,0,.2);width:100%;height:2.2rem;bottom:0rem',
+        'class': pre + 'Area'
+      })
+
+      var btn = this.createTag('div', {
+        'style': 'position:inherit;border-top:0.6rem solid transparent;border-left:1rem solid white;border-bottom:0.6rem solid transparent;bottom:0.25rem;left:1rem;color:#fff;font-weight:800;cursor:pointer',
+        'class': pre + 'Btn'
+      })
+      toolbar.appendChild(btn)
+      var timeInfo = this.createTag('div', {
+        'style': 'position:inherit;bottom:0.25rem;left:2.8rem;color:#fff;font-size:0.75rem'
+      })
+      var curTime = this.createTag('span', null, {
+        'innerText': '00:00'
+      })
+      timeInfo.appendChild(curTime)
+      var splitTime = this.createTag('span', null, {
+        'innerText': '/'
+      })
+      timeInfo.appendChild(splitTime)
+
+      var totalTime = this.createTag('span', null, {
+        'innerText': '00:00'
+      })
+      timeInfo.appendChild(totalTime)
+      toolbar.appendChild(timeInfo)
+      var tt = document.styleSheets[0]
+      tt.insertRule('@keyframes moreTip{from {top:0.75rem;} to{top:1rem}}', 0) // 写入样式
+      if (!AVR.Broswer.isIE()) {
+        tt.insertRule('@-webkit-keyframes moreTip{from {top:0.75rem;} to{top:1rem}}', 0) // 写入样式
+      }
+
+      var moreBtn = this.createTag('span', {
+        'style': 'width:2.2rem;height:2.2rem;position:inherit;left:50%;margin-left:-1.1rem;margin-top:-0.75rem;color:#fff;font-size:1.5rem;' +
+          'cursor:pointer;margin-top:1rem;border:0.0625rem dotted #ccc;height:0.0625rem;'
+      }, {
+        'innerHTML': ''
+      })
+      var moreList = this.createTag('div', {
+        'style': 'width:100%;height:auto;position:inherit;background:rgba(0,0,0,0);top:2.4rem;bottom:1.8rem;overflow: hidden;'
+      }, null)
+      var moreListUl = this.createTag('ul', {
+        'style': 'display:flex;display: -webkit-flex;display: -webkit-box;display: -moz-box;display: -ms-flexbox;margin:0;padding:0;list-style:none;height:100%;'
+      }, null)
+
+      moreList.appendChild(moreListUl)
+      toolbar.appendChild(moreBtn)
+      toolbar.appendChild(moreList)
+
+      var about = this.createTag('div', {
+        'style': 'width:2.2rem;height:2.2rem;position:inherit;right:1rem;margin-left:-1.1rem;margin-top:0.6rem;color:#fff;font-size:1.2rem;cursor:pointer;display:none',
+        'copy': '&#67;&#111;&#112;&#121;&#114;&#105;&#103;&#104;&#116;&#32;&#169;&#32;&#50;&#48;&#49;&#56;&#32;&#87;&#87;&#87;&#46;&#77;&#88;&#82;&#69;&#65;&#76;&#73;&#84;&#89;&#46;&#67;&#78;&#46;&#32;&#65;&#108;&#108;&#32;&#114;&#105;&#103;&#104;&#116;&#115;&#32;&#114;&#101;&#115;&#101;&#114;&#118;&#101;&#100;&#46;'
+
+      }, {
+        'innerText': '？'
+      })
+
+      function unicode2ascii (str) {
+        var code = str.match(/&#(\d+);/g)
+        var s = ''
+        for (var i = 0; i < code.length; i++) { s += String.fromCharCode(code[i].replace(/[&#;]/g, '')) }
+        return s
+      }
+      about.addEventListener('click', function () {
+        var str = this.getAttribute('copy')
+        alert(unicode2ascii(str))
+      }, false)
+      about.addEventListener('mouseover', function () {
+        var str = this.getAttribute('copy')
+        this.setAttribute('title', unicode2ascii(str))
+      }, false)
+      toolbar.appendChild(about)
+
+      var gyroResetBtn = this.createTag('div', {
+        'style': 'border:0.125rem solid white;border-radius:1rem;width:1rem;height:1rem;position:inherit;right:5.8rem;line-height:1rem;bottom:0.25rem;cursor:pointer'
+      })
+      var gyroResetBtnChild = this.createTag('div', {
+        'style': 'border:0.08rem solid white;border-radius:8rem;background:rgba(240,240,240,0.6);width:0.3rem;left:0.26rem;top:0.26rem;height:0.3rem;position:inherit;line-height:0.3rem;cursor:pointer'
+      })
+      gyroResetBtn.appendChild(gyroResetBtnChild)
+      toolbar.appendChild(gyroResetBtn)
+      var gyroBtn = this.createTag('div', {
+        'style': 'border:0.125rem solid white;border-radius:1rem;width:1.4rem;height:1rem;position:inherit;right:3.5rem;line-height:1rem;bottom:0.25rem;cursor:pointer'
+      })
+      var circle1 = this.createTag('div', {
+        'style': 'position:inherit;width:1.235rem;height:0.4rem;line-height:0.4rem;border:0.0625rem solid white;border-radius:0.6rem/0.2rem;margin-top:0.25rem;margin-left:0.055rem;'
+      })
+      gyroBtn.appendChild(circle1)
+      var circle2 = this.createTag('div', {
+        'style': 'position:inherit;width:1rem;height:0.4rem;line-height:0.4rem;border:0.0625rem solid white;border-radius:0.6rem/0.2rem;margin-top:0.25rem;margin-left:0.175rem;transform:rotate(90deg)'
+      })
+      gyroBtn.appendChild(circle2)
+      toolbar.appendChild(gyroBtn)
+      var vrBtn = this.createTag('div', {
+        'style': 'position:inherit;right:1rem;width:1.4rem;height:1rem;line-height:1rem;border:0.125rem solid white;border-radius:0.125rem;bottom:0.25rem;text-align:center;font-weight:800;color:#fff;font-size:0.75rem;cursor:pointer'
+      }, {
+        'innerText': 'VR'
+      })
+
+      toolbar.appendChild(vrBtn)
+
+      var progressBar = this.createTag('div', {
+        'style': 'position:inherit;top:0rem;width:100%;height:0.1rem;background:rgba(255,255,255,.3);cursor:pointer'
+      })
+
+      var loaded_progress = this.createTag('div', {
+        'style': 'position:inherit;width:0%;height:0.1rem;background:rgba(255,255,255,.3)'
+      })
+      progressBar.appendChild(loaded_progress)
+      var play_progress = this.createTag('div', {
+        'style': 'position:inherit;width:0%;height:0.1rem;background:rgba(28, 175, 252,.6)'
+      })
+      progressBar.appendChild(play_progress)
+
+      toolbar.appendChild(progressBar)
+
+      container.appendChild(toolbar)
+
+      var voice_bar = this.createTag('div', {
+        'style': '-moz-user-select:none;-webkit-user-select:none;user-select:none;position:absolute;width:2rem;height:60%;background:rgba(0,0,0,0);left:0rem;top:20%;text-align:center;display:none;border-radius:1rem;'
+      })
+      var voice_slide_bar = this.createTag('div', {
+        'style': 'position:inherit;width:0.25rem;background:rgba(255,255,255,.1);height:100%;left:0.875rem;cursor:pointer;border-radius:1rem;'
+      })
+      voice_bar.appendChild(voice_slide_bar)
+
+      var voice_cur_slide = this.createTag('div', {
+        'style': 'position:inherit;width:100%;background:rgba(255, 255, 255,.6);bottom:0rem;;border-radius:1rem;'
+      })
+      voice_slide_bar.appendChild(voice_cur_slide)
+
+      container.appendChild(voice_bar)
+
+      return {
+        'toolbar': toolbar,
+        'btn': btn,
+        'timeInfo': timeInfo,
+        'curTime': curTime,
+        'splitTime': splitTime,
+        'totalTime': totalTime,
+        'moreBtn': moreBtn,
+        'moreList': moreList,
+        'moreListUl': moreListUl,
+        'vrBtn': vrBtn,
+        'progressBar': progressBar,
+        'loadedProgress': loaded_progress,
+        'playProgress': play_progress,
+        'gyroResetBtn': gyroResetBtn,
+        'gyroBtn': gyroBtn,
+        'circle1': circle1,
+        'circle2': circle2,
+        'voice_bar': voice_bar,
+        'about': about
+      }
+    },
+    msgBox: function (msg, timeout, container) {
+      if (!msg) {
+        return
+      }
+      var msgbox = this.createTag('div', {
+        'style': 'position:absolute;bottom:50%;width:100%;padding:0.25rem;background:rgba(0,0,0,.6);color:#fff;text-align:center;'
+      }, {
+        'innerHTML': msg
+      })
+      container.appendChild(msgbox)
+      setTimeout(function () {
+        msgbox.remove()
+      }, timeout * 1000)
+    },
+    isMobileDevice: function (deviceType) {
+      var sUserAgent = navigator.userAgent.toLowerCase()
+      if (deviceType) {
+        return (sUserAgent.match(/ipad/i) || sUserAgent.match(/iphone os/i) || sUserAgent.match(/midp/i) ||
+          sUserAgent.match(/rv:1.2.3.4/i) || sUserAgent.match(/ucweb/i) || sUserAgent.match(/android/i) ||
+          sUserAgent.match(/windows ce/i) || sUserAgent.match(/windows mobile/i))
+      }
+
+      var bIsIpad = sUserAgent.match(/ipad/i) == 'ipad'
+      var bIsIphoneOs = sUserAgent.match(/iphone os/i) == 'iphone os'
+      var bIsMidp = sUserAgent.match(/midp/i) == 'midp'
+      var bIsUc7 = sUserAgent.match(/rv:1.2.3.4/i) == 'rv:1.2.3.4'
+      var bIsUc = sUserAgent.match(/ucweb/i) == 'ucweb'
+      var bIsAndroid = sUserAgent.match(/android/i) == 'android'
+      var bIsCE = sUserAgent.match(/windows ce/i) == 'windows ce'
+      var bIsWM = sUserAgent.match(/windows mobile/i) == 'windows mobile'
+      if (bIsIpad || bIsIphoneOs || bIsMidp || bIsUc7 || bIsUc || bIsAndroid || bIsCE || bIsWM) {
+        // dconsole.log("phone");
+        return true
+      } else {
+        // console.log("pc");
+        return false
+      }
+    },
+    bindOrientationEvent: function (that) {
+      if (void 0 === that.controls) {
+        that.controls = AVR.orbitControls(that.camera, that.renderer.domElement)
+        that.controls.target = that._controlTarget.clone()
+      }
+    },
+    // 横屏判断
+    isCrossScreen: function (callback) {
+      var that = this
+      if (window.orientation == 180 || window.orientation == 0) {
+        /* Vertical screen */
+        return false
+      }
+      if (window.orientation == 90 || window.orientation == -90) {
+        /* is Cross Screen */
+        return true
+      }
+    },
+    initDomStyle: function (container) {
+      document.body.style.overflow = 'hidden'
+      document.body.style.margin = 0
+      document.body.style.padding = 0
+      container.style.position = 'absolute'
+      container.style.width = '100%'
+      container.style.height = '100%'
+      container.style.left = '0px'
+      container.style.top = '0px'
+      container.style.overflow = 'hidden'
+      var style = document.createElement('style')
+      document.getElementsByTagName('head')[0].appendChild(style)
+
+      document.body.addEventListener('touchmove', bodyPreventDefault)
+      document.oncontextmenu = function () {
+        return false
+      }
+
+      function bodyPreventDefault (e) {
+        e.preventDefault()
+      }
+      document.onkeydown = function () {
+        if (!this.debug && window.event && window.event.keyCode == 123) {
+          event.keyCode = 0
+          event.returnValue = false
+          return false
+        }
+      }
+    },
+    createTag: function (tag, attr, objs) {
+      var oMeta = document.createElement(tag)
+      if (attr && typeof attr === 'object') {
+        for (var k in attr) {
+          oMeta.setAttribute(k, attr[k])
+        }
+      }
+      if (objs && typeof objs === 'object') {
+        for (var k in objs) {
+          oMeta[k] = objs[k]
+        }
+      }
+      return oMeta
+    },
+    OS: {
+      weixin: navigator.userAgent.indexOf('MicroMessenger') > -1,
+      android: /android/i.test(navigator.userAgent.toLowerCase()),
+      ios: /(iphone|ipad|ipod|ios)/i.test(navigator.userAgent.toLowerCase()),
+      googlePixel: navigator.userAgent.match(/;\sPixel\sBuild\//),
+      MiOS: navigator.userAgent.match(/;\sMI\s\d\sBuild\//),
+      samsungOS: navigator.userAgent.match(/;\sSM\-\w+\sBuild\//),
+      isGooglePixel: function () {
+        return this.googlePixel != null
+      },
+      isMiOS: function () {
+        return this.MiOS != null
+      },
+      isSamsung: function () {
+        return this.samsungOS != null
+      },
+      isMobile: function () {
+        return this.android || this.ios
+      },
+
+      isAndroid: function () {
+        return this.android
+      },
+
+      isiOS: function () {
+        return this.ios
+      },
+
+      isWeixin: function () {
+        return this.weixin
+      }
+    },
+    Broswer: {
+      win: window,
+      nav: window.navigator,
+      REG_APPLE: /^Apple/,
+      ie: navigator.userAgent.match(/MSIE\s([\d.]+)/) || navigator.userAgent.match(/Trident\/[\d](?=[^\?]+).*rv:([0-9.].)/),
+      edge: navigator.userAgent.match(/Edge\/([\d.]+)/),
+      chrome: navigator.userAgent.match(/Chrome\/([\d.]+)/) || navigator.userAgent.match(/CriOS\/([\d.]+)/),
+      webview: !this.chrome && navigator.userAgent.match(/(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/),
+      safari: this.webview || navigator.userAgent.match(/Version\/([\d.]+)([^S](Safari)|[^M]*(Mobile)[^S]*(Safari))/),
+      chromiumType: null,
+
+      _getChromiumType: function () {
+        if (this.chromiumType != null) {
+          return this.chromiumType
+        }
+
+        var win = this.win
+
+        if (this.isIE() || void 0 === win.scrollMaxX || this.REG_APPLE.test(this.nav.vendor || '')) {
+          return ''
+        }
+
+        // 搜狗浏览器
+        if (this._testExternal(/^sogou/i, 0)) {
+          return 'sogou'
+        }
+
+        // 猎豹浏览器
+        if (this._testExternal(/^liebao/i, 0)) {
+          return 'liebao'
+        }
+
+        // 360浏览器
+        if (this.nav.mimeTypes[30] || !this.nav.mimeTypes.length) {
+          return '360'
+        }
+
+        // chrome
+        if (win.clientInformation && win.clientInformation.permissions) {
+          return 'chrome'
+        }
+
+        return ''
+      },
+
+      _testExternal: function (reg, type) {
+        var external = this.win.external || {}
+
+        for (var i in external) {
+          if (reg.test(type ? external[i] : i)) {
+            return true
+          }
+        }
+
+        return false
+      },
+
+      isIE: function () {
+        return this.ie != null
+      },
+
+      ieVersion: function () {
+        return this.ie != null ? parseInt(this.ie[1]) : false
+      },
+
+      isEdge: function () {
+        return this.edge != null
+      },
+
+      isSafari: function () {
+        return this.safari != null
+      },
+
+      is360: function () {
+        this.chromiumType = this._getChromiumType()
+        return this.chromiumType === '360'
+      },
+
+      isSogou: function () {
+        this.chromiumType = this._getChromiumType()
+        return this.chromiumType === 'sogou'
+      },
+      isChromium: function () {
+        return this._getChromiumType() === 'chrome'
+      },
+      webglAvailable: function () {
+        try {
+          var canvas = document.createElement('canvas')
+          return !!(window.WebGLRenderingContext && (
+            canvas.getContext('webgl') ||
+            canvas.getContext('experimental-webgl')))
+        } catch (e) {
+          return false
+        }
+      }
+    },
+    getBoundingClientRect: function (obj) {
+      var xy = obj.getBoundingClientRect()
+      var top = xy.top - document.documentElement.clientTop + document.documentElement.scrollTop, // document.documentElement.clientTop 在IE67中始终为2，其他高级点的浏览器为0
+        bottom = xy.bottom,
+        left = xy.left - document.documentElement.clientLeft + document.documentElement.scrollLeft, // document.documentElement.clientLeft 在IE67中始终为2，其他高级点的浏览器为0
+        right = xy.right,
+        width = xy.width || right - left, // IE67不存在width 使用right - left获得
+        height = xy.height || bottom - top
+
+      return {
+        top: top,
+        right: right,
+        bottom: bottom,
+        left: left,
+        width: width,
+        height: height
+      }
+    }
+  }
+
+  var head = document.getElementsByTagName('head')[0]
+  head.appendChild(AVR.createTag('meta', {
+    'name': 'viewport',
+    'content': 'width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0,minimal-ui,user-scalable=no'
+  }))
+  head.appendChild(AVR.createTag('meta', {
+    'name': 'google',
+    'content': 'notranslate'
+  }))
+  head.appendChild(AVR.createTag('meta', {
+    'name': 'full-screen',
+    'content': 'yes'
+  }))
+
+  if (AVR.debug) {
+    window.onerror = function (msg, url, l) {
+      var txt = 'There was an error on this page.\n\n'
+      txt += 'Error: ' + msg + '\n'
+      txt += 'URL: ' + url + '\n'
+      txt += 'Line: ' + l + '\n\n'
+      AVR.msgBox(txt, 36, document.body)
+      return true
+    }
+  }
+
+  exports.VR = VR
+  exports.AR = AR
+  exports.AVR = AVR
+}))
